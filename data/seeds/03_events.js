@@ -1,9 +1,7 @@
 
 exports.seed = function (knex, Promise) {
-  // Deletes ALL existing entries
-  return knex('events').del()
+  return knex('events').truncate()
     .then(function () {
-      // Inserts seed entries
       return knex('events').insert([
         {
           id: 1,
@@ -15,9 +13,6 @@ exports.seed = function (knex, Promise) {
           dispensaryId: 1,
           brandId: 2,
           imageLink: 'super-stinky-event_image',
-          editors: [3,1],
-          userAlerts: [3],
-          admins: [1]
         }
       ]);
     });

@@ -1,9 +1,7 @@
 
 exports.seed = function (knex, Promise) {
-  // Deletes ALL existing entries
-  return knex('dispensaries').del()
+  return knex('dispensaries').truncate()
     .then(function () {
-      // Inserts seed entries
       return knex('dispensaries').insert([
         {
           id: 1,
@@ -17,9 +15,6 @@ exports.seed = function (knex, Promise) {
           instagram: '@budz',
           pref_contact: 'instagram',
           imageLink: 'budz_profile_image',
-          editors: [2,1],
-          userAlerts: [2,3,4],
-          admins: [1]
         },
         {
           id: 2,
@@ -33,9 +28,6 @@ exports.seed = function (knex, Promise) {
           instagram: '@got_greens',
           pref_contact: 'email',
           imageLink: 'got-green_profile_image',
-          editors: [4,1],
-          userAlerts: [2,5],
-          admins: [1,4]
         }
       ]);
     });

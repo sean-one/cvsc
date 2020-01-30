@@ -15,10 +15,6 @@ exports.up = function (knex) {
         table.string('instagram').unique();
         table.string('pref_contact');
         table.string('imageLink');
-
-        table.specificType('editors', 'integer ARRAY');
-        table.specificType('userAlerts', 'integer ARRAY');
-        table.specificType('admins', 'integer ARRAY');
     })
 };
 

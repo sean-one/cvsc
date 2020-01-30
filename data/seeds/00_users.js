@@ -1,9 +1,7 @@
 
 exports.seed = function (knex, Promise) {
-  // Deletes ALL existing entries
-  return knex('users').del()
+  return knex('users').truncate()
     .then(function () {
-      // Inserts seed entries
       return knex('users').insert([
         {
           id: 1,
@@ -13,8 +11,6 @@ exports.seed = function (knex, Promise) {
           instagram: '@senor_one_more',
           pref_contact: 'instagram',
           imageLink: 'seanone_profile_image',
-          brandFilter: [2],
-          dispensaryFilter: []
         },
         {
           id: 2,
@@ -24,8 +20,6 @@ exports.seed = function (knex, Promise) {
           instagram: '@john_smith',
           pref_contact: 'phone',
           imageLink: 'johnsmith_profile_image',
-          brandFilter: '{"1","2"}',
-          dispensaryFilter: '{"1","2"}'
         },
         {
           id: 3,
@@ -35,8 +29,6 @@ exports.seed = function (knex, Promise) {
           instagram: '@sara',
           pref_contact: 'email',
           imageLink: 'sara_profile_image',
-          brandFilter: [1],
-          dispensaryFilter: [1]
         },
         {
           id: 4,
@@ -46,8 +38,6 @@ exports.seed = function (knex, Promise) {
           instagram: '@b_smokin',
           pref_contact: 'instagram',
           imageLink: 'bigsmoke_profile_image',
-          brandFilter: [1,3],
-          dispensaryFilter: [1,2]
         },
         {
           id: 5,
@@ -57,8 +47,6 @@ exports.seed = function (knex, Promise) {
           instagram: '@red-eyed-rider',
           pref_contact: 'instagram',
           imageLink: 'stonedrider_profile_image',
-          brandFilter: [2],
-          dispensaryFilter: [2]
         },
       ]);
     });

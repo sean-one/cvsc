@@ -11,12 +11,9 @@ exports.up = function (knex) {
         table.string('instagram').unique();
         table.string('pref_contact');
         table.string('imageLink');
-        table.specificType('brandFilter', 'INT[]');
-        table.specificType('dispensaryFilter', 'INT[]');
     })
 };
 
 exports.down = function (knex, Promise) {
     return knex.schema.dropTableIfExists('users');
-
 };

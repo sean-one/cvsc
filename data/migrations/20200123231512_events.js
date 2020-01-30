@@ -11,12 +11,8 @@ exports.up = function (knex) {
         table.text('details')
         table.string('imageLink');
 
-        table.specificType('editors', 'integer ARRAY');
-        table.specificType('userAlerts', 'integer ARRAY');
-        table.specificType('admins', 'integer ARRAY');
-
-        table.integer('dispensaryId').references('id').inTable('dispensaries').index();
-        table.integer('brandId').references('id').inTable('brands').index();
+        table.integer('dispensaryId').references('id').inTable('dispensaries');
+        table.integer('brandId').references('id').inTable('brands');
     })
 };
 
