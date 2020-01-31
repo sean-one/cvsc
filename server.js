@@ -7,6 +7,7 @@ const cors = require('cors');
 const userRouter = require('./routes/userRouter');
 const brandRouter = require('./routes/brandRouter');
 const dispRouter = require('./routes/dispRouter');
+const eventRouter = require('./routes/eventRouter');
 
 const app = express();
 
@@ -21,6 +22,7 @@ app.use('/graphql', graphqlHTTP({
 app.use('/api/users', userRouter);
 app.use('/api/brands', brandRouter);
 app.use('/api/dispensary', dispRouter);
+app.use('/api/events', eventRouter);
 
 // sanity check
 app.get('/', (req, res) => {
