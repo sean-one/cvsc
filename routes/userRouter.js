@@ -1,10 +1,10 @@
 const express = require('express');
 
-const db = require('../data/models/users_model')
+const db = require('../data/models/users_model');
 
 const router = express.Router();
 
-
+// GET all users
 router.get('/', (req, res) => {
     db.find()
     .then(users => {
@@ -13,6 +13,7 @@ router.get('/', (req, res) => {
     .catch(err => res.status(500).json(err))
 });
 
+// GET user by ID
 router.get('/:id', (req, res) => {
     const { id } = req.params;
     db.findById(id)
@@ -28,6 +29,7 @@ router.get('/:id', (req, res) => {
         });
 });
 
+// POST (create) user
 router.post('/', async (req, res) => {
     try {
         const userData = req.body;
@@ -37,7 +39,7 @@ router.post('/', async (req, res) => {
                 const userId = await db.add(userData);
                 res.status(201).json(userId);
             } catch (error) {
-                res.status(500).json({ error: 'unable to add user to database'})
+                res.status(404).json({ error: 'unable to add user to database'})
             }
         } else {
             res.status(200).json(checkEmail);
@@ -48,6 +50,7 @@ router.post('/', async (req, res) => {
     }
 });
 
+// UPDATE user by ID
 router.put('/:id', (req, res) => {
     const { id } = req.params;
     const changes = req.body;
@@ -63,8 +66,9 @@ router.put('/:id', (req, res) => {
         .catch(err => {
             res.status(500).json({ message: 'error connecting to the server', err });
         });
-})
+});
 
+// DELETE user by ID
 router.delete('/:id', (req, res) => {
     db.remove(req.params.id)
         .then(count => {
