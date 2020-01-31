@@ -6,7 +6,9 @@ module.exports = {
   development: {
     client: 'sqlite3',
     connection: {
-      filename: './data/cvscDB.sqlite3'
+      filename: './data/cvscDB.sqlite3',
+      timezone: 'UTC',
+      dateStrings: true
     },
     useNullAsDefault: true,
     migrations: {
