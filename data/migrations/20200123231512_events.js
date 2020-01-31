@@ -5,9 +5,9 @@ exports.up = function (knex) {
         table.timestamps(true, true);
 
         table.string('eventname').notNullable();
-        table.integer('date')
-        table.integer('starttime')
-        table.integer('endtime')
+        table.bigInteger('date')
+        table.bigInteger('starttime')
+        table.bigInteger('endtime')
         table.text('details')
         table.string('imageLink');
 

@@ -33,8 +33,10 @@ router.get('/:id', (req, res) => {
 // router.post('/', async (req, res) => {
 //     try {
 //         const eventData = req.body;
-//         const checkEmail = await db.
+//         // need a way to check that event is not duplicated
+//         const eventId = await db.add(eventData);
+//         res.status(201).json(eventId);
 //     }
-// })a
+// })
 
 module.exports = router;
