@@ -51,7 +51,7 @@ router.post('/', async (req, res) => {
 router.put('/:id', (req, res) => {
     const { id } = req.params;
     const changes = req.body;
-    changes.updated_at = Date.now();
+    // changes.updated_at = Date.now();
     db.update(id, changes)
         .then(count => {
             if (count) {

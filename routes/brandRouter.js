@@ -30,8 +30,8 @@ router.get('/:id', (req, res) => {
 router.post('/', async (req, res) => {
     try {
         const brandData = req.body;
-        const checkId = await db.findById(brandData.id);
-        if (!checkId) {
+        const checkEmail = await db.findByEmail(brandData.email);
+        if (!checkEmail) {
             try {
                 const brandId = await db.add(brandData);
                 res.status(201).json(brandId);
@@ -39,12 +39,44 @@ router.post('/', async (req, res) => {
                 res.status(500).json({ error: 'unable to add brand to database' })
             }
         } else {
-            res.status(200).json(checkId);
+            res.status(200).json(checkEmail);
         }
     } catch (error) {
         let message = 'error creating brand';
         res.status(500).json({ message, error});
     }
 });
+
+router.put('/:id', (req, res) => {
+    const { id } = req.params;
+    const changes = req.body;
+    db.update(id, changes)
+        .then(count => {
+            if (count) {
+                res.status(200).json({ message: `${count} brand(s) updated` });
+            } else {
+                res.status(404).json({ message: 'brand not found' });
+            }
+        })
+        .catch(err => {
+            res.status(500).json({ message: 'error connecting to the server', err });
+        });
+
+});
+
+router.delete('/:id', (req, res) => {
+    db.remove(req.params.id)
+        .then(count => {
+            if (count < 1) {
+                res.status(404).json({ message: 'that brand id is unknown' });
+            } else {
+                res.status(200).json({ message: 'brand has been deleted' });
+            }
+        })
+        .catch(err => {
+            res.status(500).json({ message: 'error deleting brand', err });
+        });
+});
+
 
 module.exports = router;
