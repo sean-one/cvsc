@@ -30,13 +30,49 @@ router.get('/:id', (req, res) => {
 });
 
 // POST (create) event
-// router.post('/', async (req, res) => {
-//     try {
-//         const eventData = req.body;
-//         // need a way to check that event is not duplicated
-//         const eventId = await db.add(eventData);
-//         res.status(201).json(eventId);
-//     }
-// })
+router.post('/', async (req, res) => {
+    try {
+        const eventData = req.body;
+        // need a way to check that event is not duplicated
+        const eventId = await db.add(eventData);
+        res.status(201).json(eventId);
+    } catch (error) {
+        let message = 'error creating the user';
+        res.status(500).json({ message, error });
+    }
+});
+
+// UPDATE event by ID
+router.put('/:id', (req, res) => {
+    const { id } = req.params;
+    const changes = req.body;
+    // need an update to the create_at column
+    db.update(id, changes)
+        .then(count => {
+            if (count) {
+                res.status(200).json({ message: `${count} event(s) updated` });
+            } else {
+                res.status(404).json({ message: 'event not found' });
+            }
+        })
+        .catch(err => {
+            res.status(500).json({ message: 'error connecting to the server', err });
+        });
+});
+
+// DELETE event by ID
+router.delete('/:id', (req, res) => {
+    db.remove(req.params.id)
+        .then(count => {
+            if (count < 1) {
+                res.status(404).json({ message: 'that event id is unknown' });
+            } else {
+                res.status(200).json({ message: 'event has been deleted' });
+            }
+        })
+        .catch(err => {
+            res.status(500).json({ message: 'error deleting event', err });
+        });
+});
 
 module.exports = router;

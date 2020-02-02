@@ -20,7 +20,7 @@ function findById(id) {
 
 function add(event) {
     return db('events')
-        .inster(event)
+        .insert(event)
         .into('events');
 }
 
