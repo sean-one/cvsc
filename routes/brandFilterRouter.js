@@ -14,7 +14,7 @@ router.get('/', (req, res) => {
 });
 
 // GET ALL USERS with BRAND ID
-router.get('/brand/:id', (req, res) => {
+router.get('/:id', (req, res) => {
     const { id } = req.params;
     db.findByBrand(id)
         .then(users => {
