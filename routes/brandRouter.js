@@ -4,6 +4,7 @@ const db = require('../data/models/brands_model')
 
 const router = express.Router();
 
+// GET all brands
 router.get('/', (req, res) => {
     db.find()
         .then(brands => {
@@ -12,6 +13,7 @@ router.get('/', (req, res) => {
         .catch(err => res.status(500).json(err));
 });
 
+// GET brand by ID
 router.get('/:id', (req, res) => {
     const { id } = req.params;
     db.findById(id)
@@ -27,6 +29,7 @@ router.get('/:id', (req, res) => {
         });
 });
 
+// POST (create) brand
 router.post('/', async (req, res) => {
     try {
         const brandData = req.body;
@@ -47,9 +50,11 @@ router.post('/', async (req, res) => {
     }
 });
 
+// UPDATE brand by ID
 router.put('/:id', (req, res) => {
     const { id } = req.params;
     const changes = req.body;
+    // need to update 'updated_at' column
     db.update(id, changes)
         .then(count => {
             if (count) {
@@ -64,6 +69,7 @@ router.put('/:id', (req, res) => {
 
 });
 
+// DELETE brand by ID
 router.delete('/:id', (req, res) => {
     db.remove(req.params.id)
         .then(count => {
