@@ -9,6 +9,7 @@ const brandRouter = require('./routes/brandRouter');
 const dispRouter = require('./routes/dispRouter');
 const eventRouter = require('./routes/eventRouter');
 const brandFilterRouter = require('./routes/brandFilterRouter');
+const dispFilterRouter = require('./routes/dispFilterRouter');
 
 const app = express();
 
@@ -25,6 +26,7 @@ app.use('/api/brands', brandRouter);
 app.use('/api/dispensary', dispRouter);
 app.use('/api/events', eventRouter);
 app.use('/api/b/filter', brandFilterRouter);
+app.use('/api/d/filter', dispFilterRouter);
 
 // sanity check
 app.get('/', (req, res) => {
