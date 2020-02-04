@@ -179,4 +179,91 @@ router.delete('/d/:user/:dispensary', (req, res) => {
 });
 
 
+/*
+
+EVENT FILTER ROUTES
+
+*/
+
+// GET all EVENT filters
+router.get('/e', (req, res) => {
+    db.findEvents()
+        .then(filters => {
+            res.status(200).json(filters);
+        })
+        .catch(err => res.status(500).json(err));
+});
+
+// GET all USERS with EVENT ID
+router.get('/e/:id', (req, res) => {
+    const { id } = req.params;
+    db.findByEvent(id)
+        .then(users => {
+            if (users) {
+                res.status(200).json(users);
+            } else {
+                res.status(404).json({ message: 'no users found for that event' });
+            }
+        })
+        .catch(err => {
+            res.status(500).json({ message: 'failed to connect to the server', error: err });
+        });
+});
+
+// GET all EVENT with USER ID
+router.get('/e/user/:id', (req, res) => {
+    const { id } = req.params;
+    db.findEventByUser(id)
+        .then(events => {
+            if (events) {
+                res.status(200).json(events);
+            } else {
+                res.status(404).json({ message: 'no events found for that user' });
+            }
+        })
+        .catch(err => {
+            res.status(500).json({ message: 'failed to connect to the server', error: err });
+        });
+});
+
+// POST (create) EVENT filter to USER ID
+router.post('/e/:user/:event', async (req, res) => {
+    try {
+        const filter = {
+            user_id: req.params.user,
+            event_id: req.params.event
+        }
+        const checkExist = await db.findEventFilter(filter.user_id, filter.event_id);
+        if (!checkExist) {
+            try {
+                const filterId = await db.addEventFilter(filter);
+                res.status(201).json(filterId);
+            } catch (error) {
+                res.status(404).json({ error: 'user already has event filtered' });
+            }
+        } else {
+            res.status(200).json({ error: 'filter already exist' });
+        }
+    } catch (error) {
+        let message = 'error creating the filter';
+        res.status(500).json({ message, error });
+    }
+});
+
+// DELETE EVENT filter by USER ID
+router.delete('/e/:user/:event', (req, res) => {
+    db.removeEventFilter(req.params.user, req.params.event)
+        .then(count => {
+            if (count < 1) {
+                res.status(404).json({ message: 'that user does not have that event filter set' });
+            } else {
+                res.status(200).json({ message: 'that event filter has been removed' });
+            }
+        })
+        .catch(err => {
+            res.status(500).json({ message: 'error deleting filter', err });
+        });
+});
+
+
 module.exports = router;
