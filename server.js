@@ -9,6 +9,7 @@ const brandRouter = require('./routes/brandRouter');
 const dispRouter = require('./routes/dispRouter');
 const eventRouter = require('./routes/eventRouter');
 const filterRouter = require('./routes/filterRouter');
+const alertRouter = require('./routes/alertRouter');
 
 const app = express();
 
@@ -25,6 +26,7 @@ app.use('/api/brands', brandRouter);
 app.use('/api/dispensary', dispRouter);
 app.use('/api/events', eventRouter);
 app.use('/api/filter', filterRouter);
+app.use('/api/alert', alertRouter);
 
 // sanity check
 app.get('/', (req, res) => {
