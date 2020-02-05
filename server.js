@@ -8,8 +8,12 @@ const userRouter = require('./routes/userRouter');
 const brandRouter = require('./routes/brandRouter');
 const dispRouter = require('./routes/dispRouter');
 const eventRouter = require('./routes/eventRouter');
+
+const ulRouter = require('./routes/ulRouter');
+
 const filterRouter = require('./routes/filterRouter');
 const alertRouter = require('./routes/alertRouter');
+const editorRouter = require('./routes/editorRouter');
 
 const app = express();
 
@@ -25,8 +29,12 @@ app.use('/api/users', userRouter);
 app.use('/api/brands', brandRouter);
 app.use('/api/dispensary', dispRouter);
 app.use('/api/events', eventRouter);
+
+app.use('/api/ul', ulRouter);
+
 app.use('/api/filter', filterRouter);
 app.use('/api/alert', alertRouter);
+app.use('/api/editor', editorRouter);
 
 // sanity check
 app.get('/', (req, res) => {
