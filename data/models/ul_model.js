@@ -1,17 +1,28 @@
 const db = require('../dbConfig');
 
 module.exports = {
-    findBrands
+    findEntity,
+    findEntityById,
+    findByUser,
+    addRow
 }
 
-function findBrands(entity, list) {
-    if ((entity == 'brand' || 'dispensary' || 'event') && (list == 'filter' 
-    || 'alerts' || 'editors')) {
-        console.log(true, typeof(entity))
-    } else {
-        console.log(false)
-    }
-    // entity types - brand, dispensary, event
-    // list types - filter, alerts, editors
-    return db(`${entity}_${list}`);
+function findEntity(table) {
+    return db(table);
+}
+
+function findEntityById(table, query, id) {
+    return db(table)
+        .where(query, id);
+}
+
+function findByUser(table, user_id) {
+    return db(table)
+        .where({ user_id });
+}
+
+function addRow(table, entry) {
+    return db(table)
+        .insert(entry)
+        .into(table);
 }
