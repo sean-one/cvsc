@@ -7,10 +7,10 @@ const tables = [
     'brand_filter',
     'brand_editors',
     'dispensary_alerts',
-    'dispensary_filer',
+    'dispensary_filter',
     'dispensary_editors',
     'event_alerts',
-    'event_filer',
+    'event_filter',
     'event_editors'
 ]
 
