@@ -65,18 +65,25 @@ router.get('/u/:entity/:list/:id', async (req, res) => {
     }
 });
 
-// POST (create) USER entry
-// router.post('/create/:entity/:list/:user/:type', async (req, res) => {
-//     const table = `${req.params.entity}_${req.params.list}`;
-//     const 
-//     const entry = {
-//         user_id : req.params.user,
-//         `${req.params.entity}_id` : req.params.type
-//     }
-//     const checker = await verify.confirmTable(table);
-//     if (checker) {
-
-//     }
-// })
+// POST (create) USER FILTER, ALERTS, EDITORS rows for BRAND
+router.post('/create-brand/:list', async (req, res) => {
+    const table = `brand_${req.params.list}`;
+    const checkUser = await db.checkUser(req.body.user_id);
+    if (checkUser) {
+        try {
+            console.log(checkUser);
+        } catch (error) {
+            console.log('no such user')
+        }
+    }
+    // const entryData = req.body;
+    // const table = `brand_${req.params.list}`;
+    // const checker = await verify.confirmTable(table);
+    // if (checker) {
+    //     res.status(200).json({ message: `user: ${entry.user_id}, brand: ${entry.brand_id}` })
+    // } else {
+    //     res.status(404).json({ error: `could not find table named ${table}`})
+    // }
+})
 
 module.exports = router;

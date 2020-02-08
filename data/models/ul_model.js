@@ -1,10 +1,17 @@
 const db = require('../dbConfig');
 
 module.exports = {
+    checkUser,
     findEntity,
     findEntityById,
     findByUser,
     addRow
+}
+
+function checkUser(user_id) {
+    return db("users")
+        .where({ user_id })
+        .first();
 }
 
 function findEntity(table) {
