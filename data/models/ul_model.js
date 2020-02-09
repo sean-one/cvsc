@@ -3,6 +3,7 @@ const db = require('../dbConfig');
 module.exports = {
     checkUser,
     checkBrand,
+    checkBrandExist,
     findEntity,
     findEntityById,
     findByUser,
@@ -18,6 +19,12 @@ function checkUser(id) {
 function checkBrand(id) {
     return db("brands")
         .where({ id })
+        .first();
+}
+
+function checkBrandExist(table, user_id, brand_id) {
+    return db(table)
+        .where({ user_id, brand_id })
         .first();
 }
 

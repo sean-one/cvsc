@@ -72,8 +72,11 @@ router.post('/create-brand/:list', async (req, res) => {
     try {
         const checkUser = await db.checkUser(entry.user_id);
         const checkBrand = await db.checkBrand(entry.brand_id);
+        const checkExist = await db.checkBrandExist(table, entry.user_id, entry.brand_id);
         if (!checkUser || !checkBrand) {
             res.status(404).json({ message: 'user or brand not found'});
+        } else if (checkExist) {
+            res.status(409).json({ message: 'that entry already exist' });
         } else {
             try {
                 const newId = await db.addRow(table, entry);
@@ -84,17 +87,9 @@ router.post('/create-brand/:list', async (req, res) => {
             }
         }
     } catch (error) {
-        let message = 'error no user found';
+        let message = 'error connecting to the server';
         res.status(500).json({ message, error });
     }
-    // const entryData = req.body;
-    // const table = `brand_${req.params.list}`;
-    // const checker = await verify.confirmTable(table);
-    // if (checker) {
-    //     res.status(200).json({ message: `user: ${entry.user_id}, brand: ${entry.brand_id}` })
-    // } else {
-    //     res.status(404).json({ error: `could not find table named ${table}`})
-    // }
 })
 
 module.exports = router;
