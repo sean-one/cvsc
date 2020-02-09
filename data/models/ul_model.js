@@ -2,15 +2,22 @@ const db = require('../dbConfig');
 
 module.exports = {
     checkUser,
+    checkBrand,
     findEntity,
     findEntityById,
     findByUser,
     addRow
 }
 
-function checkUser(user_id) {
+function checkUser(id) {
     return db("users")
-        .where({ user_id })
+        .where({ id })
+        .first();
+}
+
+function checkBrand(id) {
+    return db("brands")
+        .where({ id })
         .first();
 }
 

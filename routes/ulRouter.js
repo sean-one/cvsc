@@ -68,13 +68,24 @@ router.get('/u/:entity/:list/:id', async (req, res) => {
 // POST (create) USER FILTER, ALERTS, EDITORS rows for BRAND
 router.post('/create-brand/:list', async (req, res) => {
     const table = `brand_${req.params.list}`;
-    const checkUser = await db.checkUser(req.body.user_id);
-    if (checkUser) {
-        try {
-            console.log(checkUser);
-        } catch (error) {
-            console.log('no such user')
+    const entry = req.body;
+    try {
+        const checkUser = await db.checkUser(entry.user_id);
+        const checkBrand = await db.checkBrand(entry.brand_id);
+        if (!checkUser || !checkBrand) {
+            res.status(404).json({ message: 'user or brand not found'});
+        } else {
+            try {
+                const newId = await db.addRow(table, entry);
+                res.status(201).json(newId);
+            } catch (error) {
+                res.status(404).json({ message: 'error creating the entry' });
+
+            }
         }
+    } catch (error) {
+        let message = 'error no user found';
+        res.status(500).json({ message, error });
     }
     // const entryData = req.body;
     // const table = `brand_${req.params.list}`;
