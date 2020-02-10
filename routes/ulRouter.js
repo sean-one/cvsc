@@ -67,6 +67,8 @@ router.get('/u/:entity/:list/:id', async (req, res) => {
 
 // POST (create) USER FILTER, ALERTS, EDITORS rows for BRAND
 router.post('/create-brand/:list', async (req, res) => {
+    // NEED TO ADD ERROR CHECKING FOR THE TABLE NAME
+    // DOUBLE CHECK NETWORK STATUS ERROR CODES
     const table = `brand_${req.params.list}`;
     const entry = req.body;
     try {
