@@ -2,39 +2,28 @@ const graphql = require('graphql');
 const GraphQLDate = require('graphql-date');
 const _ = require('lodash');
 
+const User = require('../data/models/user');
+
 const {
     GraphQLObjectType,
     GraphQLString,
     GraphQLSchema,
     GraphQLList,
-    GraphQLInt
+    GraphQLInt,
+    GraphQLID
 } = graphql;
 
 
 const UserType = new GraphQLObjectType({
     name: 'Users',
     fields: () => ({
-        id: { type: GraphQLString },
-        created_at: { type: GraphQLDate },
-        updated_at: { type: GraphQLDate },
+        _id: { type: GraphQLID },
         username: { type: GraphQLString },
-        phone: { type: GraphQLInt },
+        phone: { type: GraphQLString },
         email: { type: GraphQLString },
         instagram: { type: GraphQLString },
         pref_contact: { type: GraphQLString },
         imageLink: { type: GraphQLString }
-        // contactId: {
-        //     type: ContactType,
-        //     resolve(parent, args){
-        //         return _.find(contacts, { id: parent.contactId });
-        //     }
-        // },
-        // profileId: {
-        //     type: ProfileType,
-        //     resolve(parent, args){
-        //         return _.find(portfolios, { id: parent.profileId });
-        //     }
-        // }
     })
 
 });
@@ -46,7 +35,7 @@ const RootQuery = new GraphQLObjectType({
         users: {
             type: new GraphQLList(UserType),
             resolve(parent, args) {
-                return;
+                return User.find({});
             }
         },
         // user: {
@@ -60,6 +49,35 @@ const RootQuery = new GraphQLObjectType({
     }
 });
 
+const Mutation = new GraphQLObjectType({
+    name: 'Mutation',
+    fields: {
+        addUser: {
+            type: UserType,
+            args: {
+                username: { type: GraphQLString },
+                phone: { type: GraphQLString },
+                email: { type: GraphQLString },
+                instagram: { type: GraphQLString },
+                pref_contact: { type: GraphQLString },
+                imageLink: { type: GraphQLString }
+            },
+            resolve(parent, args){
+                let user = new User({
+                    username: args.username,
+                    phone: args.phone,
+                    email: args.email,
+                    instagram: args.instagram,
+                    pref_contact: args.pref_contact,
+                    imageLinke: args.imageLink
+                });
+                return user.save()
+            }
+        }
+    }
+})
+
 module.exports = new GraphQLSchema({
-    query: RootQuery
+    query: RootQuery,
+    mutation: Mutation
 });

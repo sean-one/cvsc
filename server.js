@@ -2,6 +2,7 @@ const express = require('express');
 const graphqlHTTP = require('express-graphql');
 const schema = require('./schema/schema');
 const cors = require('cors');
+const mongoose = require('mongoose');
 
 // Routers
 const userRouter = require('./routes/userRouter');
@@ -42,5 +43,14 @@ app.get('/', (req, res) => {
 });
 
 const port = 5000;
+
+mongoose.connect(
+    `mongodb + srv://${process.env.MONGO_USER}:${process.env.MONGO_PASS}@cvsc-xmozl.mongodb.net/test?retryWrites=true&w=majority`,
+    {
+        useNewUrlParser: true,
+        useUnifiedTopology: true,
+    },
+    () => console.log("connected to database")
+    );
 
 app.listen(port, () => console.log(`C.V.S.C. server running on port: ${port}`));
