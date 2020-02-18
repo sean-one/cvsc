@@ -14,7 +14,7 @@ const userSchema = new Schema({
     event_filters: [ String ],
     brand_alerts: [ String ],
     disp_alerts: [ String ],
-    event_alerts: [ String ],
+    event_reminders: [ String ],
 
 });
 
