@@ -1,5 +1,4 @@
 const graphql = require('graphql');
-// const GraphQLDate = require('graphql-date');
 
 const User = require('../data/models/user');
 const Brand = require('../data/models/brand');
@@ -20,12 +19,29 @@ const UserType = new GraphQLObjectType({
     name: 'Users',
     fields: () => ({
         _id: { type: GraphQLID },
+        // USERNAME need to be not null & unique
         username: { type: GraphQLString },
-        phone: { type: GraphQLString },
-        email: { type: GraphQLString },
-        instagram: { type: GraphQLString },
-        pref_contact: { type: GraphQLString },
-        imageLink: { type: GraphQLString }
+        // PASSWORD need to be not null
+        password: { type: GraphQLString },
+        contact: {
+            phone: { type: GraphQLInt },
+            // EMAIL need to be unique
+            email: { type: GraphQLString},
+            // INSTAGRAM need to be unique
+            instagram: { type: GraphQLString }
+        },
+        alertmethod: { type: GraphQLString },
+        images: {
+            // PROFILE need a default
+            profile: { type: GraphQLString }
+        },
+        filters: {
+            brand: { type: GraphQLList(GraphQLString)},
+            dispensary: { type: GraphQLList(GraphQLString)},
+            location: { type: GraphQLList(GraphQLString)}
+        },
+        created: { type: GraphQLList(GraphQLString) },
+        reminder: { type: GraphQLList(GraphQLString) }
     })
 
 });
@@ -34,12 +50,22 @@ const BrandType = new GraphQLObjectType({
     name: 'Brands',
     fields: () => ({
         _id: { type: GraphQLID },
+        // BRANDNAME need to be not null & unique
         brandname: { type: GraphQLString },
-        phone: { type: GraphQLString },
-        email: { type: GraphQLString },
-        instagram: { type: GraphQLString },
-        pref_contact: { type: GraphQLString },
-        imageLink: { type: GraphQLString }
+        about: { type: GraphQLString },
+        contact: {
+            phone: Number,
+            email: String,
+            instagram: String
+        },
+        images: {
+            // PROFILE & EVENTDEFAULT need default images
+            profile: String,
+            eventdefault: String
+        },
+        events: { type: GraphQLList(GraphQLString) },
+        alerts: { type: GraphQLList(GraphQLString) },
+        creators: { type: GraphQLList(GraphQLString) }
     })
 });
 
