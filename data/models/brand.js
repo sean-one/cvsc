@@ -18,9 +18,9 @@ const brandSchema = new Schema({
         profile: String,
         eventdefault: String,
     },
-    events: [String],
-    alerts: [String],
-    creators: [String]
+    events: [{ type: Schema.Types.ObjectId, ref: 'Event' }],
+    alerts: [{ type: Schema.Types.ObjectId, ref: 'User' }],
+    editors: [{ type: Schema.Types.ObjectId, ref: 'User' }]
 });
 
 module.exports = mongoose.model('Brand', brandSchema);

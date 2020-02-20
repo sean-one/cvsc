@@ -18,7 +18,7 @@ const eventSchema = new Schema({
         // this will default to either the brand or the dispensary image
         primary: String,
     },
-    brand: String,
+    brands: [String],
     dispensary: String
 });
 

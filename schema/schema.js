@@ -45,22 +45,20 @@ const BrandType = new GraphQLObjectType({
     name: 'Brands',
     fields: () => ({
         _id: { type: GraphQLID },
-        // BRANDNAME need to be not null & unique
-        brandname: { type: GraphQLString },
+        brandname: { type: new GraphQLNonNull(GraphQLString) },
         about: { type: GraphQLString },
         contact: {
-            phone: Number,
-            email: String,
-            instagram: String
+            phone: { type: GraphQLInt },
+            email: { type: GraphQLString },
+            instagram: { type: GraphQLString}
         },
         images: {
-            // PROFILE & EVENTDEFAULT need default images
-            profile: String,
-            eventdefault: String
+            profile: { type: GraphQLString },
+            eventdefault: { type: GraphQLString }
         },
-        events: { type: GraphQLList(GraphQLString) },
-        alerts: { type: GraphQLList(GraphQLString) },
-        creators: { type: GraphQLList(GraphQLString) }
+        events: { type: GraphQLList(EventType) },
+        alerts: { type: GraphQLList(UserType) },
+        editors: { type: GraphQLList(UserType) }
     })
 });
 
