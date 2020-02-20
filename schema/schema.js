@@ -11,7 +11,8 @@ const {
     GraphQLSchema,
     GraphQLList,
     GraphQLInt,
-    GraphQLID
+    GraphQLID,
+    GraphQLNonNull
 } = graphql;
 
 
@@ -19,29 +20,23 @@ const UserType = new GraphQLObjectType({
     name: 'Users',
     fields: () => ({
         _id: { type: GraphQLID },
-        // USERNAME need to be not null & unique
-        username: { type: GraphQLString },
-        // PASSWORD need to be not null
-        password: { type: GraphQLString },
+        username: { type: new GraphQLNonNull(GraphQLString) },
+        password: { type: new GraphQLNonNull(GraphQLString) },
         contact: {
             phone: { type: GraphQLInt },
-            // EMAIL need to be unique
             email: { type: GraphQLString},
-            // INSTAGRAM need to be unique
             instagram: { type: GraphQLString }
         },
         alertmethod: { type: GraphQLString },
         images: {
-            // PROFILE need a default
             profile: { type: GraphQLString }
         },
         filters: {
-            brand: { type: GraphQLList(GraphQLString)},
-            dispensary: { type: GraphQLList(GraphQLString)},
-            location: { type: GraphQLList(GraphQLString)}
+            brand: { type: GraphQLList(BrandType)},
+            dispensary: { type: GraphQLList(DispensaryType)},
+            location: { type: GraphQLList(DispensaryType)}
         },
-        created: { type: GraphQLList(GraphQLString) },
-        reminder: { type: GraphQLList(GraphQLString) }
+        created: { type: GraphQLList(EventType) }
     })
 
 });

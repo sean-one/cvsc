@@ -29,12 +29,11 @@ const userSchema = new Schema({
         profile: String
     },
     filters: {
-        brand: [String],
-        dispensary: [String],
-        location: [String]
+        brand: [{ type: Schema.Types.ObjectId, ref: 'Brand' }],
+        dispensary: [{ type: Schema.Types.ObjectId, ref: 'Dispensary' }],
+        location: [{ type: Schema.Types.ObjectId, ref: 'Dispensary' }]
     },
-    created: [String],
-    reminder: [String]
+    created: [{ type: Schema.Types.ObjectId, ref: 'Event' }]
 });
 
 module.exports = mongoose.model('User', userSchema);
