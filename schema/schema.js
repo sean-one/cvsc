@@ -59,7 +59,11 @@ const BrandType = new GraphQLObjectType({
         },
         events: { type: GraphQLList(EventType) },
         alerts: { type: GraphQLList(UserType) },
-        editors: { type: GraphQLList(UserType) }
+        editors: { type: GraphQLList(UserType) },
+        updated: {
+            updated_at: { type: GraphQLNonNull(GraphQLDate) },
+            updated_by: { type: GraphQLNonNull(UserType) }
+        }
     })
 });
 
@@ -88,7 +92,11 @@ const DispensaryType = new GraphQLObjectType({
         },
         events: { type: new GraphQLList(EventType) },
         alerts: { type: new GraphQLList(UserType) },
-        editors: { type: new GraphQLList(UserType) }
+        editors: { type: new GraphQLList(UserType) },
+        updated: {
+            updated_at: { type: GraphQLNonNull(GraphQLDate) },
+            updated_by: { type: GraphQLNonNull(UserType) }
+        }
     })
 });
 
@@ -97,13 +105,18 @@ const EventType = new GraphQLObjectType({
     fields: () => ({
         _id: { type: GraphQLID },
         title: { type: new GraphQLNonNull(GraphQLString) },
+        author: { type: new GraphQLNonNull(UserType) },
         startdate: { type: new GraphQLNonNull(GraphQLDate) },
         enddate: { type: new GraphQLNonNull(GraphQLDate) },
         images: {
             primary: { type: GraphQLString }
         },
         brands: { type: new GraphQLList(BrandType) },
-        dispensary: { type: GraphQLNonNull(DispensaryType) }
+        dispensary: { type: GraphQLNonNull(DispensaryType) },
+        updated: {
+            updated_at: { type: GraphQLNonNull(GraphQLDate) },
+            updated_by: { type: GraphQLNonNull(UserType) }
+        }
     })
 });
 

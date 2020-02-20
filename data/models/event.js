@@ -6,6 +6,11 @@ const eventSchema = new Schema({
         type: String,
         required: true
     },
+    author: {
+        type: Schema.Types.ObjectId,
+        ref: 'User',
+        required: true
+    },
     startdate: {
         type: Date,
         required: true
@@ -19,7 +24,19 @@ const eventSchema = new Schema({
         primary: String,
     },
     brands: [{ type: Schema.Types.ObjectId, ref: 'Brand' }],
-    dispensary: { type: Schema.Types.ObjectId, ref: 'Dispensary' }
+    dispensary: { type: Schema.Types.ObjectId, ref: 'Dispensary' },
+    updated: {
+        updated_at: {
+            type: Date,
+            default: Date.now,
+            required: true
+        },
+        updated_by: {
+            type: Schema.Types.ObjectId,
+            ref: 'User',
+            required: true
+        }
+    }
 });
 
 module.exports = mongoose.model('Event', eventSchema);
