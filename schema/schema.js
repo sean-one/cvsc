@@ -66,16 +66,28 @@ const DispensaryType = new GraphQLObjectType({
     name: 'Dispensaries',
     fields: () => ({
         _id: { type: GraphQLID },
-        dispensaryname: { type: GraphQLString },
-        street: { type: GraphQLString },
-        city: { type: GraphQLString },
-        state: { type: GraphQLString },
-        zip: { type: GraphQLInt },
-        phone: { type: GraphQLString },
-        email: { type: GraphQLString },
-        instagram: { type: GraphQLString },
-        pref_contact: { type: GraphQLString },
-        imageLink: { type: GraphQLString }
+        dispensaryname: { type: new GraphQLNonNull(GraphQLString) },
+        about: { type: GraphQLString },
+        contact: {
+            address: {
+                street: { type: new GraphQLNonNull(GraphQLString) },
+                city: { type: new GraphQLNonNull(GraphQLString) },
+                state: { type: new GraphQLNonNull(GraphQLString) },
+                zip: { type: new GraphQLNonNull(GraphQLInt) }
+            },
+            // NOT SURE WHAT TYPE THIS WILL BE // ALSO SHOULD BE NON NULL
+            location: { type: GraphQLString },
+            phone: { type: GraphQLInt },
+            email: { type: GraphQLString },
+            instagram: { type: GraphQLString }
+        },
+        images: {
+            profile: { type: GraphQLString },
+            eventdefault: { type: GraphQLString }
+        },
+        events: { type: new GraphQLList(EventType) },
+        alerts: { type: new GraphQLList(UserType) },
+        editors: { type: new GraphQLList(UserType) }
     })
 });
 
