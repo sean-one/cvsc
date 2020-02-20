@@ -1,4 +1,5 @@
 const graphql = require('graphql');
+const GraphQLDate = require('graphql-date');
 
 const User = require('../data/models/user');
 const Brand = require('../data/models/brand');
@@ -95,14 +96,14 @@ const EventType = new GraphQLObjectType({
     name: 'Events',
     fields: () => ({
         _id: { type: GraphQLID },
-        eventname: { type: GraphQLString },
-        date: { type: GraphQLString },
-        starttime: { type: GraphQLString },
-        endtime: { type: GraphQLString },
-        details: { type: GraphQLString },
-        imageLink: { type: GraphQLString },
-        dispensaryId: { type: GraphQLString },
-        brandId: { type: GraphQLString }
+        title: { type: new GraphQLNonNull(GraphQLString) },
+        startdate: { type: new GraphQLNonNull(GraphQLDate) },
+        enddate: { type: new GraphQLNonNull(GraphQLDate) },
+        images: {
+            primary: { type: GraphQLString }
+        },
+        brands: { type: new GraphQLList(BrandType) },
+        dispensary: { type: GraphQLNonNull(DispensaryType) }
     })
 });
 

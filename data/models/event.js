@@ -18,8 +18,8 @@ const eventSchema = new Schema({
         // this will default to either the brand or the dispensary image
         primary: String,
     },
-    brands: [String],
-    dispensary: String
+    brands: [{ type: Schema.Types.ObjectId, ref: 'Brand' }],
+    dispensary: { type: Schema.Types.ObjectId, ref: 'Dispensary' }
 });
 
 module.exports = mongoose.model('Event', eventSchema);
