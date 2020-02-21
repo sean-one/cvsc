@@ -207,20 +207,44 @@ const Mutation = new GraphQLObjectType({
             type: UserType,
             args: {
                 username: { type: GraphQLString },
-                phone: { type: GraphQLString },
-                email: { type: GraphQLString },
-                instagram: { type: GraphQLString },
-                pref_contact: { type: GraphQLString },
-                imageLink: { type: GraphQLString }
+                // PASSWORD WILL NEED ENCRYPTION
+                password: { type: GraphQLString },
+                contact: {
+                    phone: { type: GraphQLInt },
+                    email: { type: GraphQLString },
+                    instagram: { type: GraphQLString }
+                },
+                alertmethod: { type: GraphQLString },
+                images: {
+                    profile: { type: GraphQLString }
+                },
+                filters: {
+                    brand: [{ type: GraphQLID }],
+                    dispensary: [{ type: GraphQLID }],
+                    location: [{ type: GraphQLID }]
+                },
+                created: { type: GraphQLID }
             },
             resolve(parent, args){
                 let user = new User({
                     username: args.username,
-                    phone: args.phone,
-                    email: args.email,
-                    instagram: args.instagram,
-                    pref_contact: args.pref_contact,
-                    imageLinke: args.imageLink
+                    password: args.password,
+                    contact: {
+                        phone: args.contact.phone,
+                        email: args.contact.email,
+                        instagram: args.contact.instagram
+                    },
+                    alertmethod: args.alertmethod,
+                    images: {
+                        profile: args.images.profile
+                    },
+                    filters: {
+                        brand: args.filters.brand,
+                        dispensary: args.filters.dispensary,
+                        location: args.filters.location
+                    },
+                    created: args.created
+                    
                 });
                 return user.save()
             }
