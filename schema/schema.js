@@ -55,19 +55,15 @@ const EventType = new GraphQLObjectType({
     name: 'Events',
     fields: () => ({
         _id: { type: GraphQLID },
+        createdAt: { type: GraphQLDate },
+        updatedAt: { type: GraphQLDate },
         title: { type: new GraphQLNonNull(GraphQLString) },
+        about: { type: GraphQLString },
         author: { type: new GraphQLNonNull(UserType) },
         startdate: { type: new GraphQLNonNull(GraphQLDate) },
         enddate: { type: new GraphQLNonNull(GraphQLDate) },
-        images: {
-            primary: { type: GraphQLString }
-        },
         brands: { type: new GraphQLList(BrandType) },
-        dispensary: { type: GraphQLNonNull(DispensaryType) },
-        updated: {
-            updated_at: { type: GraphQLNonNull(GraphQLDate) },
-            updated_by: { type: GraphQLNonNull(UserType) }
-        }
+        dispensaryId: { type: GraphQLNonNull(DispensaryType) }
     })
 });
 
