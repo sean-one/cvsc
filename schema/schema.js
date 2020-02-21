@@ -33,24 +33,10 @@ const BrandType = new GraphQLObjectType({
     name: 'Brands',
     fields: () => ({
         _id: { type: GraphQLID },
+        createdAt: { type: GraphQLDate },
+        updatedAt: { type: GraphQLDate },
         brandname: { type: new GraphQLNonNull(GraphQLString) },
-        about: { type: GraphQLString },
-        contact: {
-            phone: { type: GraphQLInt },
-            email: { type: GraphQLString },
-            instagram: { type: GraphQLString}
-        },
-        images: {
-            profile: { type: GraphQLString },
-            eventdefault: { type: GraphQLString }
-        },
-        events: { type: GraphQLList(EventType) },
-        alerts: { type: GraphQLList(UserType) },
-        editors: { type: GraphQLList(UserType) },
-        updated: {
-            updated_at: { type: GraphQLNonNull(GraphQLDate) },
-            updated_by: { type: GraphQLNonNull(UserType) }
-        }
+        about: { type: GraphQLString }
     })
 });
 
