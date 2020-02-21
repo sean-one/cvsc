@@ -21,23 +21,10 @@ const UserType = new GraphQLObjectType({
     name: 'Users',
     fields: () => ({
         _id: { type: GraphQLID },
+        createdAt: { type: GraphQLDate },
+        updatedAt: { type: GraphQLDate },
         username: { type: new GraphQLNonNull(GraphQLString) },
-        password: { type: new GraphQLNonNull(GraphQLString) },
-        contact: {
-            phone: { type: GraphQLInt },
-            email: { type: GraphQLString},
-            instagram: { type: GraphQLString }
-        },
-        alertmethod: { type: GraphQLString },
-        images: {
-            profile: { type: GraphQLString }
-        },
-        filters: {
-            brand: { type: GraphQLList(BrandType)},
-            dispensary: { type: GraphQLList(DispensaryType)},
-            location: { type: GraphQLList(DispensaryType)}
-        },
-        created: { type: GraphQLList(EventType) }
+        password: { type: new GraphQLNonNull(GraphQLString) }
     })
 
 });
