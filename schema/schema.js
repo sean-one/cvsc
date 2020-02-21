@@ -5,6 +5,11 @@ const User = require('../data/models/user');
 const Brand = require('../data/models/brand');
 const Dispensary = require('../data/models/dispensary');
 const Event = require('../data/models/event');
+const Contact = require('../data/models/contact');
+const Location = require('../data/models/location');
+const Filter = require('../data/models/filter');
+const Alert = require('../data/models/alert');
+const ImageStorage = require('../data/models/imagestorage');
 
 const {
     GraphQLObjectType,
@@ -64,6 +69,71 @@ const EventType = new GraphQLObjectType({
         enddate: { type: new GraphQLNonNull(GraphQLDate) },
         brands: { type: new GraphQLList(BrandType) },
         dispensaryId: { type: GraphQLNonNull(DispensaryType) }
+    })
+});
+
+const ContactType = new GraphQLObjectType({
+    name: 'Contacts',
+    fields: () => ({
+        _id: { type: GraphQLID },
+        createdAt: { type: GraphQLDate },
+        updatedAt: { type: GraphQLDate },
+        phone: { type: GraphQLInt },
+        email: { type: GraphQLString },
+        url: { type: GraphQLString },
+        instagram: { type: GraphQLString },
+        primaryContact: { type: GraphQLString },
+        refId: { type: GraphQLID }
+    })
+});
+
+const LocationType = new GraphQLObjectType({
+    name: 'Locations',
+    fields: () => ({
+        _id: { type: GraphQLID },
+        createdAt: { type: GraphQLDate },
+        updatedAt: { type: GraphQLDate },
+        formatted: { type: GraphQLString },
+        city: { type: GraphQLString },
+        lat: { type: GraphQLString },
+        lng: { type: GraphQLString },
+        refId: { type: GraphQLID },
+    })
+});
+
+const FilterType = new GraphQLObjectType({
+    name: 'Filters',
+    fields: () => ({
+        _id: { type: GraphQLID },
+        createdAt: { type: GraphQLDate },
+        updatedAt: { type: GraphQLDate },
+        brandfilters: { type: GraphQLList(BrandType) },
+        dispensaryfilters: { type: GraphQLList(DispensaryType) },
+        refId: { type: GraphQLID }
+    })
+});
+
+const AlertType = new GraphQLObjectType({
+    name: 'Alerts',
+    fields: () => ({
+        _id: { type: GraphQLID },
+        createdAt: { type: GraphQLDate },
+        updatedAt: { type: GraphQLDate },
+        alertusers: { type: GraphQLList(UserType) },
+        refId: { type: GraphQLID }
+    })
+});
+
+const ImageStorageType = new GraphQLObjectType({
+    name: 'ImageStorage',
+    fields: () => ({
+        _id: { type: GraphQLID },
+        createdAt: { type: GraphQLDate },
+        updatedAt: { type: GraphQLDate },
+        profile: { type: GraphQLString },
+        refdefault: { type: GraphQLString },
+        eventprimary: { type: GraphQLString },
+        refId: { type: GraphQLID }
     })
 });
 
