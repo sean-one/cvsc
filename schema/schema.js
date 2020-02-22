@@ -3,7 +3,7 @@ const GraphQLDate = require('graphql-date');
 
 const User = require('../data/models/user');
 const Brand = require('../data/models/brand');
-// const Dispensary = require('../data/models/dispensary');
+const Dispensary = require('../data/models/dispensary');
 // const Event = require('../data/models/event');
 // const Contact = require('../data/models/contact');
 // const Location = require('../data/models/location');
@@ -45,16 +45,16 @@ const BrandType = new GraphQLObjectType({
     })
 });
 
-// const DispensaryType = new GraphQLObjectType({
-//     name: 'Dispensaries',
-//     fields: () => ({
-//         _id: { type: GraphQLID },
-//         createdAt: { type: GraphQLDate },
-//         updatedAt: { type: GraphQLDate },
-//         dispensaryname: { type: new GraphQLNonNull(GraphQLString) },
-//         about: { type: GraphQLString }
-//     })
-// });
+const DispensaryType = new GraphQLObjectType({
+    name: 'Dispensaries',
+    fields: () => ({
+        _id: { type: GraphQLID },
+        createdAt: { type: GraphQLDate },
+        updatedAt: { type: GraphQLDate },
+        dispensaryname: { type: new GraphQLNonNull(GraphQLString) },
+        about: { type: GraphQLString }
+    })
+});
 
 // const EventType = new GraphQLObjectType({
 //     name: 'Events',
@@ -153,6 +153,12 @@ const RootQuery = new GraphQLObjectType({
                 return Brand.find({});
             }
         },
+        dispensaries: {
+            type: new GraphQLList(DispensaryType),
+            resolve(parent, args) {
+                return Dispensary.find({})
+            }
+        }
         // user: {
         //     type: UserType,
         //     args: { id: { type: GraphQLString }},
@@ -193,6 +199,20 @@ const Mutation = new GraphQLObjectType({
                     about: args.about
                 });
                 return brand.save()
+            }
+        },
+        addDispensary: {
+            type: DispensaryType,
+            args: {
+                dispensaryname: { type: GraphQLString },
+                about: { type: GraphQLString }
+            },
+            resolve(parent, args) {
+                let dispensaryname = new Dispensary({
+                    dispensaryname: args.dispensaryname,
+                    about: args.about
+                });
+                return dispensaryname.save()
             }
         }
     }
