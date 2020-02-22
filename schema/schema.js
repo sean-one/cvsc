@@ -3,7 +3,8 @@ const GraphQLDate = require('graphql-date');
 
 // google geocoder for location
 const googleMapsClient = require('@google/maps').createClient({
-    key: process.env.GEOCODER_API_KEY
+    key: process.env.GEOCODER_API_KEY,
+    Promise: Promise
 });
 
 const User = require('../data/models/user');
@@ -72,6 +73,12 @@ const DispensaryType = new GraphQLObjectType({
             type: ContactType,
             resolve(parent, args) {
                 return Contact.findOne({ refId: parent._id })
+            }
+        },
+        location: {
+            type: LocationType,
+            resolve(parent, args) {
+                return Location.findOne({ refId: parent._id })
             }
         }
     })
@@ -256,6 +263,31 @@ const Mutation = new GraphQLObjectType({
                     refId: args.refId
                 });
                 return contact.save()
+            }
+        },
+        addLocation: {
+            type: LocationType,
+            args: {
+                addressString: { type: GraphQLString },
+                refId: { type: GraphQLID }
+            },
+            resolve(parent, args){
+                googleMapsClient.geocode({ address: args.addressString })
+                    .asPromise()
+                    .then((response) => {
+                        let location = new Location({
+                            formatted: response.json.results[0].formatted_address,
+                            city: response.json.results[0].address_components[2].long_name,
+                            lat: response.json.results[0].geometry.location.lat,
+                            lng: response.json.results[0].geometry.location.lng,
+                            refId: args.refId
+                        })
+                        return location.save()
+                    })
+                    .catch((err) => {
+                        console.log(err);
+                    });
+                return
             }
         }
     }
