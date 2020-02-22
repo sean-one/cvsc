@@ -1,12 +1,17 @@
 const graphql = require('graphql');
 const GraphQLDate = require('graphql-date');
 
+// google geocoder for location
+const googleMapsClient = require('@google/maps').createClient({
+    key: process.env.GEOCODER_API_KEY
+});
+
 const User = require('../data/models/user');
 const Brand = require('../data/models/brand');
 const Dispensary = require('../data/models/dispensary');
 // const Event = require('../data/models/event');
-// const Contact = require('../data/models/contact');
-// const Location = require('../data/models/location');
+const Contact = require('../data/models/contact');
+const Location = require('../data/models/location');
 // const Filter = require('../data/models/filter');
 // const Alert = require('../data/models/alert');
 // const ImageStorage = require('../data/models/imagestorage');
@@ -21,7 +26,6 @@ const {
     GraphQLNonNull
 } = graphql;
 
-
 const UserType = new GraphQLObjectType({
     name: 'Users',
     fields: () => ({
@@ -29,9 +33,14 @@ const UserType = new GraphQLObjectType({
         createdAt: { type: GraphQLDate },
         updatedAt: { type: GraphQLDate },
         username: { type: new GraphQLNonNull(GraphQLString) },
-        password: { type: new GraphQLNonNull(GraphQLString) }
+        password: { type: new GraphQLNonNull(GraphQLString) },
+        contact: {
+            type: ContactType,
+            resolve(parent, args) {
+                return Contact.findOne({ refId: parent._id })
+            }
+        }
     })
-
 });
 
 const BrandType = new GraphQLObjectType({
@@ -41,7 +50,13 @@ const BrandType = new GraphQLObjectType({
         createdAt: { type: GraphQLDate },
         updatedAt: { type: GraphQLDate },
         brandname: { type: new GraphQLNonNull(GraphQLString) },
-        about: { type: GraphQLString }
+        about: { type: GraphQLString },
+        contact: {
+            type: ContactType,
+            resolve(parent, args) {
+                return Contact.findOne({ refId: parent._id })
+            }
+        }
     })
 });
 
@@ -52,7 +67,13 @@ const DispensaryType = new GraphQLObjectType({
         createdAt: { type: GraphQLDate },
         updatedAt: { type: GraphQLDate },
         dispensaryname: { type: new GraphQLNonNull(GraphQLString) },
-        about: { type: GraphQLString }
+        about: { type: GraphQLString },
+        contact: {
+            type: ContactType,
+            resolve(parent, args) {
+                return Contact.findOne({ refId: parent._id })
+            }
+        }
     })
 });
 
@@ -72,34 +93,34 @@ const DispensaryType = new GraphQLObjectType({
 //     })
 // });
 
-// const ContactType = new GraphQLObjectType({
-//     name: 'Contacts',
-//     fields: () => ({
-//         _id: { type: GraphQLID },
-//         createdAt: { type: GraphQLDate },
-//         updatedAt: { type: GraphQLDate },
-//         phone: { type: GraphQLInt },
-//         email: { type: GraphQLString },
-//         url: { type: GraphQLString },
-//         instagram: { type: GraphQLString },
-//         primaryContact: { type: GraphQLString },
-//         refId: { type: GraphQLID }
-//     })
-// });
+const ContactType = new GraphQLObjectType({
+    name: 'Contacts',
+    fields: () => ({
+        _id: { type: GraphQLID },
+        createdAt: { type: GraphQLDate },
+        updatedAt: { type: GraphQLDate },
+        phone: { type: GraphQLString },
+        email: { type: GraphQLString },
+        url: { type: GraphQLString },
+        instagram: { type: GraphQLString },
+        primary: { type: GraphQLString },
+        refId: { type: GraphQLID }
+    })
+});
 
-// const LocationType = new GraphQLObjectType({
-//     name: 'Locations',
-//     fields: () => ({
-//         _id: { type: GraphQLID },
-//         createdAt: { type: GraphQLDate },
-//         updatedAt: { type: GraphQLDate },
-//         formatted: { type: GraphQLString },
-//         city: { type: GraphQLString },
-//         lat: { type: GraphQLString },
-//         lng: { type: GraphQLString },
-//         refId: { type: GraphQLID },
-//     })
-// });
+const LocationType = new GraphQLObjectType({
+    name: 'Locations',
+    fields: () => ({
+        _id: { type: GraphQLID },
+        createdAt: { type: GraphQLDate },
+        updatedAt: { type: GraphQLDate },
+        formatted: { type: GraphQLString },
+        city: { type: GraphQLString },
+        lat: { type: GraphQLString },
+        lng: { type: GraphQLString },
+        refId: { type: GraphQLID },
+    })
+});
 
 // const FilterType = new GraphQLObjectType({
 //     name: 'Filters',
@@ -147,6 +168,13 @@ const RootQuery = new GraphQLObjectType({
                 return User.find({});
             }
         },
+        user: {
+            type: UserType,
+            args: { id: { type: GraphQLID }},
+            resolve(parent, args){
+                return User.findOne({ _id: args.id })
+            }
+        },
         brands: {
             type: new GraphQLList(BrandType),
             resolve(parent, args) {
@@ -159,13 +187,6 @@ const RootQuery = new GraphQLObjectType({
                 return Dispensary.find({})
             }
         }
-        // user: {
-        //     type: UserType,
-        //     args: { id: { type: GraphQLString }},
-        //     resolve(parent, args){
-        //         return User.findOne({ _id: args.id })
-        //     }
-        // },
     }
 });
 
@@ -213,6 +234,28 @@ const Mutation = new GraphQLObjectType({
                     about: args.about
                 });
                 return dispensaryname.save()
+            }
+        },
+        addContact: {
+            type: ContactType,
+            args: {
+                phone: { type: GraphQLString },
+                email: { type: GraphQLString },
+                url: { type: GraphQLString },
+                instagram: { type: GraphQLString },
+                primary: { type: GraphQLString },
+                refId: { type: GraphQLID }
+            },
+            resolve(parent, args) {
+                let contact = new Contact({
+                    phone: args.phone,
+                    email: args.email,
+                    url: args.url,
+                    instagram: args.instagram,
+                    primary: args.primary,
+                    refId: args.refId
+                });
+                return contact.save()
             }
         }
     }

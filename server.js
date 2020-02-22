@@ -1,10 +1,10 @@
+require('dotenv').config();
+
 const express = require('express');
 const graphqlHTTP = require('express-graphql');
 const schema = require('./schema/schema');
 const cors = require('cors');
 const mongoose = require('mongoose');
-
-require('dotenv').config();
 
 const app = express();
 
