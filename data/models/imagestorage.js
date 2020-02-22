@@ -6,6 +6,6 @@ const imagestoreSchema = new Schema({
     refdefault: String,
     eventprimary: String,
     refId: { type: Schema.Types.ObjectId }
-});
+}, { timestamps: Date });
 
 module.exports = mongoose.model('ImageStore', imagestoreSchema);

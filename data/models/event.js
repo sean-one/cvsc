@@ -2,7 +2,6 @@ const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 
 const eventSchema = new Schema({
-    timestamps: Date,
     title: {
         type: String,
         required: true
@@ -30,6 +29,6 @@ const eventSchema = new Schema({
         ref: 'Dispensary',
         required: true
     }
-});
+}, { timestamps: Date });
 
 module.exports = mongoose.model('Event', eventSchema);

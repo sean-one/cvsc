@@ -8,7 +8,6 @@ const contactSchema = new Schema({
     instagram: String,
     primaryContact: String,
     refId: { type: Schema.Types.ObjectId }
-
 });
 
 module.exports = mongoose.model('Contact', contactSchema);
