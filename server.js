@@ -4,6 +4,8 @@ const schema = require('./schema/schema');
 const cors = require('cors');
 const mongoose = require('mongoose');
 
+require('dotenv').config();
+
 const app = express();
 
 app.use(express.json());
@@ -22,7 +24,7 @@ app.get('/', (req, res) => {
 const port = 5000;
 
 mongoose.connect(
-    `mongodb+srv://${process.env.MONGO_USER}:${process.env.MONGO_PASS}@cvsc-xmozl.mongodb.net/test?retryWrites=true&w=majority`,
+    `mongodb+srv://${process.env.MONGO_USER}:${process.env.MONGO_PASS}@cvsmokersclub-xmozl.mongodb.net/test?retryWrites=true&w=majority`,
     {
         useNewUrlParser: true,
         useUnifiedTopology: true,

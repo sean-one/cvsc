@@ -3,7 +3,6 @@ const Schema = mongoose.Schema;
 
 
 const userSchema = new Schema({
-    timestamps: Date,
     username: {
         type: String,
         required: true,
@@ -13,6 +12,6 @@ const userSchema = new Schema({
         type: String,
         required: true
     }
-});
+}, { timestamps: Date });
 
 module.exports = mongoose.model('User', userSchema);
