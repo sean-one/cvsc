@@ -2,7 +2,7 @@ const graphql = require('graphql');
 const GraphQLDate = require('graphql-date');
 
 const User = require('../data/models/user');
-// const Brand = require('../data/models/brand');
+const Brand = require('../data/models/brand');
 // const Dispensary = require('../data/models/dispensary');
 // const Event = require('../data/models/event');
 // const Contact = require('../data/models/contact');
@@ -34,16 +34,16 @@ const UserType = new GraphQLObjectType({
 
 });
 
-// const BrandType = new GraphQLObjectType({
-//     name: 'Brands',
-//     fields: () => ({
-//         _id: { type: GraphQLID },
-//         createdAt: { type: GraphQLDate },
-//         updatedAt: { type: GraphQLDate },
-//         brandname: { type: new GraphQLNonNull(GraphQLString) },
-//         about: { type: GraphQLString }
-//     })
-// });
+const BrandType = new GraphQLObjectType({
+    name: 'Brands',
+    fields: () => ({
+        _id: { type: GraphQLID },
+        createdAt: { type: GraphQLDate },
+        updatedAt: { type: GraphQLDate },
+        brandname: { type: new GraphQLNonNull(GraphQLString) },
+        about: { type: GraphQLString }
+    })
+});
 
 // const DispensaryType = new GraphQLObjectType({
 //     name: 'Dispensaries',
@@ -147,6 +147,12 @@ const RootQuery = new GraphQLObjectType({
                 return User.find({});
             }
         },
+        brands: {
+            type: new GraphQLList(BrandType),
+            resolve(parent, args) {
+                return Brand.find({});
+            }
+        },
         // user: {
         //     type: UserType,
         //     args: { id: { type: GraphQLString }},
@@ -170,9 +176,23 @@ const Mutation = new GraphQLObjectType({
             resolve(parent, args){
                 let user = new User({
                     username: args.username,
-                    password: args.password,
+                    password: args.password
                 });
                 return user.save()
+            }
+        },
+        addBrand: {
+            type: BrandType,
+            args: {
+                brandname: { type: GraphQLString },
+                about: { type: GraphQLString }
+            },
+            resolve(parent, args) {
+                let brand = new Brand({
+                    brandname: args.brandname,
+                    about: args.about
+                });
+                return brand.save()
             }
         }
     }
