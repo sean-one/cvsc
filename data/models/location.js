@@ -6,7 +6,10 @@ const locationSchema = new Schema({
     city: String,
     lat: String,
     lng: String,
-    refId: { type: Schema.Types.ObjectId }
+    refId: {
+        type: Schema.Types.ObjectId,
+        unique: true
+    }
 });
 
 module.exports = mongoose.model('Location', locationSchema);

@@ -13,7 +13,7 @@ const Dispensary = require('../data/models/dispensary');
 // const Event = require('../data/models/event');
 const Contact = require('../data/models/contact');
 const Location = require('../data/models/location');
-// const Filter = require('../data/models/filter');
+const Filter = require('../data/models/filter');
 // const Alert = require('../data/models/alert');
 // const ImageStorage = require('../data/models/imagestorage');
 
@@ -129,17 +129,17 @@ const LocationType = new GraphQLObjectType({
     })
 });
 
-// const FilterType = new GraphQLObjectType({
-//     name: 'Filters',
-//     fields: () => ({
-//         _id: { type: GraphQLID },
-//         createdAt: { type: GraphQLDate },
-//         updatedAt: { type: GraphQLDate },
-//         brandfilters: { type: GraphQLList(BrandType) },
-//         dispensaryfilters: { type: GraphQLList(DispensaryType) },
-//         refId: { type: GraphQLID }
-//     })
-// });
+const FilterType = new GraphQLObjectType({
+    name: 'Filters',
+    fields: () => ({
+        _id: { type: GraphQLID },
+        createdAt: { type: GraphQLDate },
+        updatedAt: { type: GraphQLDate },
+        brandfilters: { type: GraphQLList(BrandType) },
+        dispensaryfilters: { type: GraphQLList(DispensaryType) },
+        refId: { type: GraphQLID }
+    })
+});
 
 // const AlertType = new GraphQLObjectType({
 //     name: 'Alerts',
@@ -288,6 +288,12 @@ const Mutation = new GraphQLObjectType({
                         console.log(err);
                     });
                 return
+            }
+        },
+        addFilter: {
+            type: FilterType,
+            args: {
+
             }
         }
     }
