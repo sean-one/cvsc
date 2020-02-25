@@ -293,7 +293,12 @@ const Mutation = new GraphQLObjectType({
         addFilter: {
             type: FilterType,
             args: {
-
+                brandfilters: { type: GraphQLID },
+                dispensaryfilters: { type: GraphQLID },
+                refId: { type: GraphQLID }
+            },
+            resolve(parent, args) {
+                
             }
         }
     }
