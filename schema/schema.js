@@ -40,6 +40,12 @@ const UserType = new GraphQLObjectType({
             resolve(parent, args) {
                 return Contact.findOne({ refId: parent._id })
             }
+        },
+        filters: {
+            type: FilterType,
+            resolve(parent, args) {
+                return Filter.findOne({ refId: parent._id })
+            }
         }
     })
 });
@@ -133,10 +139,8 @@ const FilterType = new GraphQLObjectType({
     name: 'Filters',
     fields: () => ({
         _id: { type: GraphQLID },
-        createdAt: { type: GraphQLDate },
-        updatedAt: { type: GraphQLDate },
-        brandfilters: { type: GraphQLList(BrandType) },
-        dispensaryfilters: { type: GraphQLList(DispensaryType) },
+        brandfilters: { type: GraphQLList(GraphQLID) },
+        dispensaryfilters: { type: GraphQLList(GraphQLID) },
         refId: { type: GraphQLID }
     })
 });
@@ -298,7 +302,12 @@ const Mutation = new GraphQLObjectType({
                 refId: { type: GraphQLID }
             },
             resolve(parent, args) {
-                
+                return Filter.updateOne(
+                    { refId: args.refId },
+                    { $push: {"brandfilters": args.brandfilters, "dispensaryfilters": args.dispensaryfilters}, refId: args.refId },
+                    { upsert: true, omitUndefined: true, timestamps: true }
+                );
+                // return filter.findBy()
             }
         }
     }
