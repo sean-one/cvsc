@@ -1,11 +1,11 @@
 const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 
+
 const filterSchema = new Schema({
     brandfilters: [{ 
         type: Schema.Types.ObjectId,
-        ref: 'Brand',
-        unique: true
+        ref: 'Brand'
     }],
     dispensaryfilters: [{
         type: Schema.Types.ObjectId,
@@ -18,4 +18,6 @@ const filterSchema = new Schema({
     }
 });
 
-module.exports = mongoose.model('Filter', filterSchema);
+const Filter = mongoose.model('Filter', filterSchema);
+
+module.exports = Filter
