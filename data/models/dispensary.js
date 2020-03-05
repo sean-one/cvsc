@@ -4,10 +4,15 @@ const Schema = mongoose.Schema;
 const dispSchema = new Schema({
     dispensaryname: {
         type: String,
-        required: true,
-        unique: true
+        validate: {
+            validator: async dispensaryname => await Dispensary.where({ dispensaryname }).countDocuments() === 0,
+            message: ({ value }) => `Dispensary ${value} has already been taken.`
+        },
+        required: true
     },
     about: String,
 }, { timestamps: Date });
 
-module.exports = mongoose.model('Dispensary', dispSchema);
+const Dispensary = mongoose.model('Dispensary', dispSchema);
+
+module.exports = Dispensary
