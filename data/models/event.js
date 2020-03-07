@@ -4,6 +4,12 @@ const Schema = mongoose.Schema;
 const eventSchema = new Schema({
     title: {
         type: String,
+        validate: {
+            validator: () => {
+                console.log('trigger')
+            },
+            message: ({ value }) => 'there was an error'
+        },
         required: true
     },
     about: String,
@@ -31,4 +37,6 @@ const eventSchema = new Schema({
     }
 }, { timestamps: Date });
 
-module.exports = mongoose.model('Event', eventSchema);
+const Event = mongoose.model('Event', eventSchema);
+
+module.exports = Event

@@ -10,7 +10,7 @@ const googleMapsClient = require('@google/maps').createClient({
 const User = require('../data/models/user');
 const Brand = require('../data/models/brand');
 const Dispensary = require('../data/models/dispensary');
-// const Event = require('../data/models/event');
+const Event = require('../data/models/event');
 const Contact = require('../data/models/contact');
 const Location = require('../data/models/location');
 const Filter = require('../data/models/filter');
@@ -44,7 +44,7 @@ const UserType = new GraphQLObjectType({
         filters: {
             type: FilterType,
             resolve(parent, args) {
-                return Filter.findOne({ refId: parent._id })
+                return Filter.findOne({ userId: parent._id })
             }
         }
     })
@@ -90,21 +90,21 @@ const DispensaryType = new GraphQLObjectType({
     })
 });
 
-// const EventType = new GraphQLObjectType({
-//     name: 'Events',
-//     fields: () => ({
-//         _id: { type: GraphQLID },
-//         createdAt: { type: GraphQLDate },
-//         updatedAt: { type: GraphQLDate },
-//         title: { type: new GraphQLNonNull(GraphQLString) },
-//         about: { type: GraphQLString },
-//         author: { type: new GraphQLNonNull(UserType) },
-//         startdate: { type: new GraphQLNonNull(GraphQLDate) },
-//         enddate: { type: new GraphQLNonNull(GraphQLDate) },
-//         brands: { type: new GraphQLList(BrandType) },
-//         dispensaryId: { type: GraphQLNonNull(DispensaryType) }
-//     })
-// });
+const EventType = new GraphQLObjectType({
+    name: 'Events',
+    fields: () => ({
+        _id: { type: GraphQLID },
+        createdAt: { type: GraphQLDate },
+        updatedAt: { type: GraphQLDate },
+        title: { type: new GraphQLNonNull(GraphQLString) },
+        about: { type: GraphQLString },
+        author: { type: new GraphQLNonNull(UserType) },
+        startdate: { type: new GraphQLNonNull(GraphQLDate) },
+        enddate: { type: new GraphQLNonNull(GraphQLDate) },
+        brands: { type: new GraphQLList(BrandType) },
+        dispensaryId: { type: GraphQLNonNull(DispensaryType) }
+    })
+});
 
 const ContactType = new GraphQLObjectType({
     name: 'Contacts',
@@ -141,7 +141,7 @@ const FilterType = new GraphQLObjectType({
         _id: { type: GraphQLID },
         brandfilters: { type: GraphQLList(GraphQLID) },
         dispensaryfilters: { type: GraphQLList(GraphQLID) },
-        refId: { type: GraphQLID }
+        userId: { type: GraphQLID }
     })
 });
 
@@ -294,17 +294,43 @@ const Mutation = new GraphQLObjectType({
                 return
             }
         },
+        addEvent: {
+            type: EventType,
+            args: {
+                title: { type: GraphQLString },
+                about: { type: GraphQLString },
+                author: { type: GraphQLID },
+                startdate: { type: GraphQLDate },
+                enddate: { type: GraphQLDate },
+                brands: { type: GraphQLID },
+                dispensaryId: { type: GraphQLID }
+            },
+            resolve(parent, args) {
+                const start = new Date(args.startdate)
+                console.log(start)
+                let event = new Event({
+                    title: args.title,
+                    about: args.about,
+                    author: args.author,
+                    startdate: args.startdate,
+                    enddate: args.enddate,
+                    brands: args.brands,
+                    dispensaryId: args.dispensaryId
+                });
+                event.save()
+            }
+        },
         addFilter: {
             type: FilterType,
             args: {
                 brandfilters: { type: GraphQLID },
                 dispensaryfilters: { type: GraphQLID },
-                refId: { type: GraphQLID }
+                userId: { type: GraphQLID }
             },
             resolve(parent, args) {
                 return Filter.updateOne(
-                    { refId: args.refId },
-                    { $push: {"brandfilters": args.brandfilters, "dispensaryfilters": args.dispensaryfilters}, refId: args.refId },
+                    { userId: args.userId },
+                    { $addToSet: {"brandfilters": args.brandfilters, "dispensaryfilters": args.dispensaryfilters}, userId: args.userId },
                     { upsert: true, omitUndefined: true, timestamps: true }
                 );
                 // return filter.findBy()

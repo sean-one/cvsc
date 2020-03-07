@@ -11,7 +11,7 @@ const filterSchema = new Schema({
         type: Schema.Types.ObjectId,
         ref: 'Dispensary'
     }],
-    refId: {
+    userId: {
         type: Schema.Types.ObjectId,
         ref: 'User',
         unique: true
