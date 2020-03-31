@@ -1,5 +1,5 @@
 const graphql = require('graphql');
-const GraphQLDate = require('graphql-date');
+const { GraphQLDate, GraphQLDateTime } = require('graphql-iso-date');
 
 // google geocoder for location
 const googleMapsClient = require('@google/maps').createClient({
@@ -98,11 +98,26 @@ const EventType = new GraphQLObjectType({
         updatedAt: { type: GraphQLDate },
         title: { type: new GraphQLNonNull(GraphQLString) },
         about: { type: GraphQLString },
-        author: { type: new GraphQLNonNull(UserType) },
-        startdate: { type: new GraphQLNonNull(GraphQLDate) },
-        enddate: { type: new GraphQLNonNull(GraphQLDate) },
-        brands: { type: new GraphQLList(BrandType) },
-        dispensaryId: { type: GraphQLNonNull(DispensaryType) }
+        startdate: { type: new GraphQLNonNull(GraphQLDateTime) },
+        enddate: { type: new GraphQLNonNull(GraphQLDateTime) },
+        author: {
+            type: UserType,
+            resolve(parent, args) {
+                return User.findOne({ _id: parent.author })
+            }
+        },
+        brands: {
+            type: new GraphQLList(BrandType),
+            resolve(parent, args) {
+                return Brand.find({ _id: {$in: parent.brands} })
+            }
+        },
+        dispensaryId: { 
+            type: DispensaryType,
+            resolve(parent, args) {
+                return Dispensary.findOne({ _id: parent.dispensaryId })
+            }
+        }
     })
 });
 
@@ -110,8 +125,6 @@ const ContactType = new GraphQLObjectType({
     name: 'Contacts',
     fields: () => ({
         _id: { type: GraphQLID },
-        createdAt: { type: GraphQLDate },
-        updatedAt: { type: GraphQLDate },
         phone: { type: GraphQLString },
         email: { type: GraphQLString },
         url: { type: GraphQLString },
@@ -125,8 +138,6 @@ const LocationType = new GraphQLObjectType({
     name: 'Locations',
     fields: () => ({
         _id: { type: GraphQLID },
-        createdAt: { type: GraphQLDate },
-        updatedAt: { type: GraphQLDate },
         formatted: { type: GraphQLString },
         city: { type: GraphQLString },
         lat: { type: GraphQLString },
@@ -139,8 +150,18 @@ const FilterType = new GraphQLObjectType({
     name: 'Filters',
     fields: () => ({
         _id: { type: GraphQLID },
-        brandfilters: { type: GraphQLList(GraphQLID) },
-        dispensaryfilters: { type: GraphQLList(GraphQLID) },
+        brandfilters: {
+            type: GraphQLList(BrandType),
+            resolve(parent, args) {
+                return Brand.find({ _id: {$in: parent.brandfilters} })
+            }
+        },
+        dispensaryfilters: {
+            type: GraphQLList(DispensaryType),
+            resolve(parent, args) {
+                return Dispensary.find({ _id: {$in: parent.dispensaryfilters} })
+            }
+        },
         userId: { type: GraphQLID }
     })
 });
@@ -196,6 +217,12 @@ const RootQuery = new GraphQLObjectType({
             type: new GraphQLList(DispensaryType),
             resolve(parent, args) {
                 return Dispensary.find({})
+            }
+        },
+        events: {
+            type: new GraphQLList(EventType),
+            resolve(parent, args) {
+                return Event.find({})
             }
         }
     }
@@ -266,6 +293,7 @@ const Mutation = new GraphQLObjectType({
                     primary: args.primary,
                     refId: args.refId
                 });
+                // NEED TO UPDATE PARENT
                 return contact.save()
             }
         },
@@ -286,6 +314,7 @@ const Mutation = new GraphQLObjectType({
                             lng: response.json.results[0].geometry.location.lng,
                             refId: args.refId
                         })
+                        // NEED TO UPDATE PARENT
                         return location.save()
                     })
                     .catch((err) => {
@@ -300,8 +329,8 @@ const Mutation = new GraphQLObjectType({
                 title: { type: GraphQLString },
                 about: { type: GraphQLString },
                 author: { type: GraphQLID },
-                startdate: { type: GraphQLDate },
-                enddate: { type: GraphQLDate },
+                startdate: { type: GraphQLDateTime },
+                enddate: { type: GraphQLDateTime },
                 brands: { type: GraphQLID },
                 dispensaryId: { type: GraphQLID }
             },
