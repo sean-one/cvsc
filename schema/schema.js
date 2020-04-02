@@ -211,9 +211,16 @@ const RootQuery = new GraphQLObjectType({
         },
         user: {
             type: UserType,
-            args: { id: { type: GraphQLID }},
+            args: { id: { type: GraphQLID } },
             resolve(parent, args){
                 return User.findOne({ _id: args.id })
+            }
+        },
+        username: {
+            type: UserType,
+            args: { username: { type: GraphQLString } },
+            resolve(parent, args){
+                return User.findOne({ username: args.username })
             }
         },
         brands: {
@@ -222,10 +229,38 @@ const RootQuery = new GraphQLObjectType({
                 return Brand.find({});
             }
         },
+        brand: {
+            type: BrandType,
+            args: { id: { type: GraphQLID }},
+            resolve(parent, args){
+                return Brand.findOne({ _id: args.id })
+            }
+        },
+        brandname: {
+            type: BrandType,
+            args: { brandname: { type: GraphQLString }},
+            resolve(parent, args){
+                return Brand.findOne({ brandname: args.brandname })
+            }
+        },
         dispensaries: {
             type: new GraphQLList(DispensaryType),
             resolve(parent, args) {
                 return Dispensary.find({})
+            }
+        },
+        dispensary: {
+            type: DispensaryType,
+            args: { id: { type: GraphQLID }},
+            resolve(parent, args) {
+                return Dispensary.findOne({ _id: args.id })
+            }
+        },
+        dispensaryname: {
+            type: DispensaryType,
+            args: { dispensaryname: { type: GraphQLString }},
+            resolve(parent, args) {
+                return Dispensary.findOne({ dispensaryname: args.dispensaryname})
             }
         },
         events: {

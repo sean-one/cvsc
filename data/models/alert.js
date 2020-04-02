@@ -6,4 +6,6 @@ const alertSchema = new Schema({
     refId: { type: Schema.Types.ObjectId }
 });
 
-module.exports = mongoose.model('Alert', alertSchema);
+const Alert = mongoose.model('Alert', alertSchema);
+
+module.exports = Alert;
