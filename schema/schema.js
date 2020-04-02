@@ -14,7 +14,7 @@ const Event = require('../data/models/event');
 const Contact = require('../data/models/contact');
 const Location = require('../data/models/location');
 const Filter = require('../data/models/filter');
-// const Alert = require('../data/models/alert');
+const Alert = require('../data/models/alert');
 // const ImageStorage = require('../data/models/imagestorage');
 
 const {
@@ -62,6 +62,12 @@ const BrandType = new GraphQLObjectType({
             type: ContactType,
             resolve(parent, args) {
                 return Contact.findOne({ refId: parent._id })
+            }
+        },
+        alerts: {
+            type: AlertType,
+            resolve(parent, args) {
+                return Alert.findOne({ refId: parent._id  })
             }
         }
     })
@@ -166,16 +172,19 @@ const FilterType = new GraphQLObjectType({
     })
 });
 
-// const AlertType = new GraphQLObjectType({
-//     name: 'Alerts',
-//     fields: () => ({
-//         _id: { type: GraphQLID },
-//         createdAt: { type: GraphQLDate },
-//         updatedAt: { type: GraphQLDate },
-//         alertusers: { type: GraphQLList(UserType) },
-//         refId: { type: GraphQLID }
-//     })
-// });
+const AlertType = new GraphQLObjectType({
+    name: 'Alerts',
+    fields: () => ({
+        _id: { type: GraphQLID },
+        alertusers: {
+            type: GraphQLList(UserType),
+            resolve(parent, args) {
+                return User.find({ _id: {$in: parent.alertusers} })
+            }
+        },
+        refId: { type: GraphQLID }
+    })
+});
 
 // const ImageStorageType = new GraphQLObjectType({
 //     name: 'ImageStorage',
@@ -360,6 +369,21 @@ const Mutation = new GraphQLObjectType({
                 return Filter.updateOne(
                     { userId: args.userId },
                     { $addToSet: {"brandfilters": args.brandfilters, "dispensaryfilters": args.dispensaryfilters}, userId: args.userId },
+                    { upsert: true, omitUndefined: true, timestamps: true }
+                );
+                // return filter.findBy()
+            }
+        },
+        addAlert: {
+            type: AlertType,
+            args: {
+                alertusers: { type: GraphQLList(GraphQLID) },
+                refId: { type: GraphQLID }
+            },
+            resolve(parent, args) {
+                return Alert.updateOne(
+                    { refId: args.refId },
+                    { $addToSet: {"alertusers": args.alertusers }, refId: args.refId },
                     { upsert: true, omitUndefined: true, timestamps: true }
                 );
                 // return filter.findBy()
