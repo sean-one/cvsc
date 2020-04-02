@@ -15,7 +15,7 @@ const Contact = require('../data/models/contact');
 const Location = require('../data/models/location');
 const Filter = require('../data/models/filter');
 const Alert = require('../data/models/alert');
-// const ImageStorage = require('../data/models/imagestorage');
+const ImageStorage = require('../data/models/imagestorage');
 
 const {
     GraphQLObjectType,
@@ -186,18 +186,16 @@ const AlertType = new GraphQLObjectType({
     })
 });
 
-// const ImageStorageType = new GraphQLObjectType({
-//     name: 'ImageStorage',
-//     fields: () => ({
-//         _id: { type: GraphQLID },
-//         createdAt: { type: GraphQLDate },
-//         updatedAt: { type: GraphQLDate },
-//         profile: { type: GraphQLString },
-//         refdefault: { type: GraphQLString },
-//         eventprimary: { type: GraphQLString },
-//         refId: { type: GraphQLID }
-//     })
-// });
+const ImageStorageType = new GraphQLObjectType({
+    name: 'ImageStorage',
+    fields: () => ({
+        _id: { type: GraphQLID },
+        profile: { type: GraphQLString },
+        refdefault: { type: GraphQLString },
+        eventprimary: { type: GraphQLString },
+        refId: { type: GraphQLID }
+    })
+});
 
 const RootQuery = new GraphQLObjectType({
     name: 'RootQueryType',
@@ -379,8 +377,6 @@ const Mutation = new GraphQLObjectType({
                 dispensaryId: { type: GraphQLID }
             },
             resolve(parent, args) {
-                const start = new Date(args.startdate)
-                console.log(start)
                 let event = new Event({
                     title: args.title,
                     about: args.about,
@@ -422,6 +418,24 @@ const Mutation = new GraphQLObjectType({
                     { upsert: true, omitUndefined: true, timestamps: true }
                 );
                 // return filter.findBy()
+            }
+        },
+        addImages: {
+            type: ImageStorageType,
+            args: {
+                profile: { type: GraphQLString },
+                refdefault: { type: GraphQLString },
+                eventprimary: { type: GraphQLString },
+                refId: { type: GraphQLID }
+            },
+            resolve(parent, args) {
+                let images = new ImageStorage({
+                    profile: args.profile,
+                    refdefault: args.refdefault,
+                    eventprimary: args.eventprimary,
+                    refId: args.refId
+                });
+                images.save()
             }
         }
     }
