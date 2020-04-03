@@ -46,6 +46,12 @@ const UserType = new GraphQLObjectType({
             resolve(parent, args) {
                 return Filter.findOne({ userId: parent._id })
             }
+        },
+        images: {
+            type: ImageStorageType,
+            resolve(parent, args) {
+                return ImageStorage.findOne({ refId: parent._id })
+            }
         }
     })
 });
@@ -69,6 +75,12 @@ const BrandType = new GraphQLObjectType({
             resolve(parent, args) {
                 return Alert.findOne({ refId: parent._id  })
             }
+        },
+        images: {
+            type: ImageStorageType,
+            resolve(parent, args) {
+                return ImageStorage.findOne({ refId: parent._id })
+            }
         }
     })
 });
@@ -91,6 +103,18 @@ const DispensaryType = new GraphQLObjectType({
             type: LocationType,
             resolve(parent, args) {
                 return Location.findOne({ refId: parent._id })
+            }
+        },
+        alerts: {
+            type: AlertType,
+            resolve(parent, args) {
+                return Alert.findOne({ refId: parent._id })
+            }
+        },
+        images: {
+            type: ImageStorageType,
+            resolve(parent, args) {
+                return ImageStorage.findOne({ refId: parent._id })
             }
         }
     })
@@ -122,6 +146,12 @@ const EventType = new GraphQLObjectType({
             type: DispensaryType,
             resolve(parent, args) {
                 return Dispensary.findOne({ _id: parent.dispensaryId })
+            }
+        },
+        images: {
+            type: ImageStorageType,
+            resolve(parent, args) {
+                return ImageStorage.findOne({ refId: parent._id })
             }
         }
     })
@@ -221,6 +251,7 @@ const RootQuery = new GraphQLObjectType({
                 return User.findOne({ username: args.username })
             }
         },
+        // brand queries
         brands: {
             type: new GraphQLList(BrandType),
             resolve(parent, args) {
@@ -241,6 +272,7 @@ const RootQuery = new GraphQLObjectType({
                 return Brand.findOne({ brandname: args.brandname })
             }
         },
+        // dispensary queries
         dispensaries: {
             type: new GraphQLList(DispensaryType),
             resolve(parent, args) {
@@ -261,10 +293,25 @@ const RootQuery = new GraphQLObjectType({
                 return Dispensary.findOne({ dispensaryname: args.dispensaryname})
             }
         },
+        // event queries
         events: {
             type: new GraphQLList(EventType),
             resolve(parent, args) {
                 return Event.find({})
+            }
+        },
+        eventByDate: {
+            type: new GraphQLList(EventType),
+            args: {
+                startdate: { type: GraphQLDateTime },
+                enddate: { type: GraphQLDateTime }
+            },
+            resolve(parent, args) {
+
+                return Event.find({ startdate: {
+                    '$gte': new Date(args.startdate),
+                    '$lt': new Date(args.enddate)
+                } })
             }
         }
     }
