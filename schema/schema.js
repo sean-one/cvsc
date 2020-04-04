@@ -307,11 +307,28 @@ const RootQuery = new GraphQLObjectType({
                 enddate: { type: GraphQLDateTime }
             },
             resolve(parent, args) {
-
                 return Event.find({ startdate: {
                     '$gte': new Date(args.startdate),
                     '$lt': new Date(args.enddate)
                 } })
+            }
+        },
+        eventByBrand: {
+            type: new GraphQLList(EventType),
+            args: {
+                brandId: { type: GraphQLID }
+            },
+            resolve(parent, args) {
+                return Event.find({ brands: {$in: args.brandId} })
+            }
+        },
+        eventByDispensary: {
+            type: new GraphQLList(EventType),
+            args: {
+                dispensaryId: { type: GraphQLID }
+            },
+            resolve(parent, args) {
+                return Event.find({ dispensaryId: args.dispensaryId })
             }
         }
     }
