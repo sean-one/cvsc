@@ -251,6 +251,13 @@ const RootQuery = new GraphQLObjectType({
                 return User.findOne({ username: args.username })
             }
         },
+        getUserFilters: {
+            type: FilterType,
+            args: { user: { type: GraphQLID }},
+            resolve(parent, args) {
+                return Filter.findOne({ userId: args.user })
+            }
+        },
         // brand queries
         brands: {
             type: new GraphQLList(BrandType),
