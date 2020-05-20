@@ -8,4 +8,6 @@ const imagestoreSchema = new Schema({
     refId: { type: Schema.Types.ObjectId }
 }, { timestamps: Date });
 
-module.exports = mongoose.model('ImageStore', imagestoreSchema);
+const Images = mongoose.model('ImageStore', imagestoreSchema);
+
+module.exports = Images;

@@ -1,6 +1,9 @@
 const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 
+const ContactModel = require('./contact');
+const ImagesModel = require('./imagestorage');
+const LocationModel = require('./location');
 
 const userSchema = new Schema({
     username: {
@@ -14,7 +17,10 @@ const userSchema = new Schema({
     password: {
         type: String,
         required: true
-    }
+    },
+    contact: ContactModel.schema,
+    images: ImagesModel.schema,
+    location: LocationModel.schema
 }, { timestamps: Date });
 
 const User = mongoose.model('User', userSchema);

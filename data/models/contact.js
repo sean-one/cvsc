@@ -27,7 +27,6 @@ const contactSchema = new Schema({
         validate: checkInstagram
     },
     primary: String,
-    refId: { type: Schema.Types.ObjectId }
 });
 
 const Contact = mongoose.model('Contact', contactSchema);
