@@ -7,7 +7,8 @@ const googleMapsClient = require('@google/maps').createClient({
     Promise: Promise
 });
 
-const User = require('../data/models/user');
+// const User = require('../data/models/user');
+const User = require('../data/models/userModel');
 //#region <MODEL IMPORTS>
 // const Brand = require('../data/models/brand');
 // const Dispensary = require('../data/models/dispensary');
@@ -37,12 +38,28 @@ const UserType = new GraphQLObjectType({
         updatedAt: { type: GraphQLDate },
         username: { type: new GraphQLNonNull(GraphQLString) },
         password: { type: new GraphQLNonNull(GraphQLString) },
-        contact: {
-            type: ContactType,
-            resolve(parent, args) {
-                return Contact.findOne({ _id: parent.contact })
-            }
-        }
+        email: { type: GraphQLString },
+        phone: { type: GraphQLString },
+        instagram: { type: GraphQLString },
+        location: { type: new GraphQLList(GraphQLString) },
+        // brandAlerts: {
+        //     type: new GraphQLList(BrandType),
+        //     resolve(parent, args) {
+        //         return Brand.find({ _id: {$in: parent.brandAlerts} })
+        //     }
+        // },
+        // dispensaryAlerts: {
+        //     type: new GraphQLList(DispensaryType),
+        //     resolve(parent, args) {
+        //         return Dispensary.find({ _id: {$in: parent.dispensaryAlerts}})
+        //     }
+        // }
+        // contact: {
+        //     type: ContactType,
+        //     resolve(parent, args) {
+        //         return Contact.findOne({ _id: parent.contact })
+        //     }
+        // }
 
         //#region <future imports>
         // contact: {
@@ -383,15 +400,69 @@ const Mutation = new GraphQLObjectType({
                 username: { type: GraphQLString },
                 // PASSWORD WILL NEED ENCRYPTION
                 password: { type: GraphQLString },
+                email: { type: GraphQLString },
+                phone: { type: GraphQLString },
+                instagram: { type: GraphQLString },
+                profilePicture: { type: GraphQLString },
+                location: { type: GraphQLList(GraphQLString)},
+                brandAlerts: { type: GraphQLList(GraphQLID)},
+                dispensaryAlerts: { type: GraphQLID },
             },
             resolve(parent, args){
                 let user = new User({
                     username: args.username,
-                    password: args.password
+                    password: args.password,
+                    email: args.email,
+                    phone: args.phone,
+                    instagram: args.instagram,
+                    profilePicture: args.profilePicture,
+                    location: args.location,
+                    brandAlerts: args.brandAlerts,
+                    dispensaryAlerts: args.dispensaryAlerts
                 });
                 return user.save()
             }
         },
+        updateUser: {
+            type: UserType,
+            args: {
+                username: { type: GraphQLString },
+                email: { type: GraphQLString },
+                phone: { type: GraphQLString },
+                instagram: { type: GraphQLString },
+                profilePicture: { type: GraphQLString }
+            },
+            async resolve(parent, args){
+                console.log(args);
+                if (!args.username) {
+                    console.log('no username included');
+                    return 'Please include valid username.';
+                }
+                try {
+    
+                    const foundUser = await User.findOne({ username: args.username });
+    
+                    if (foundUser) {
+                        return await User.updateOne(
+                            { username: args.username },
+                            {
+                                $set: {
+                                    "email": args.email,
+                                    "phone": args.phone,
+                                    "instagram": args.instagram,
+                                    "profilePicture": args.profilePicture
+                                }
+                            },
+                            { omitUndefined: true, timestamps: true }
+                        )
+                    } else {
+                        return "Username is invalid";
+                    }
+                } catch(error) {
+                    return error.message;
+                }
+            }
+        }
         //#region <UNUSED MUTATIONS>
         // addBrand: {
         //     type: BrandType,

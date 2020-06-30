@@ -1,6 +1,16 @@
 const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 
+const checkInstagram = [
+    {
+        validator: async instagram => await /^(?!.*\.\.)(?!.*\.$)[^\W][\w.]{0,29}$/.test(instagram),
+        message: ({ value }) => `${value} is an invalid instagram username`
+    },
+    {
+        validator: async instagram => await User.where({ instagram }).countDocuments() === 0,
+        message: ({ value }) => `the instagram account ${value} is associated with another account.`
+    }
+];
 
 const dispensarySchema = new Schema({
     dispensaryname: {

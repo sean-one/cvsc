@@ -35,7 +35,7 @@ const userSchema = new Schema({
     phone: String,
     instagram: {
         type: String,
-        validate: checkInstagram
+        // validate: checkInstagram
     },
     profilePicture: String,
     location: [String],
