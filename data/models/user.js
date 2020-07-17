@@ -19,6 +19,7 @@ const userSchema = new Schema({
     },
     following: [{
         type: Schema.Types.ObjectId,
+        // need to add validation to make sure there are no duplicates
     }]
 }, { timestamps: Date });
 

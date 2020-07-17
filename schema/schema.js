@@ -45,7 +45,7 @@ const UserType = new GraphQLObjectType({
         following: {
             type: new GraphQLList(BusinessType),
             resolve(parent, args){
-                return Business.find({ _id: parent._id })
+                return Business.where('_id').in(parent.following)
             }
         }
     })
@@ -174,17 +174,16 @@ const Mutation = new GraphQLObjectType({
                 return await User.findByIdAndUpdate(args.id, { password: password }, { new: true } );
             }
         },
-        // NOT WORKING - LOOK INTO PUSHING INTO ARRAY
-        // follow: {
-        //     type: BusinessType,
-        //     args: {
-        //         userId: { type: GraphQLID },
-        //         businessId: { type: GraphQLID },
-        //     },
-        //     async resolve(parent, args){
-        //         return await User.findByIdAndUpdate(args.userId, { $push: { "following": args.businessId } }, { new: true });
-        //     }
-        // },
+        follow: {
+            type: BusinessType,
+            args: {
+                userId: { type: GraphQLID },
+                businessId: { type: GraphQLID },
+            },
+            async resolve(parent, args){
+                return await User.findByIdAndUpdate(args.userId, { $push: { following: args.businessId } }, { new: true });
+            }
+        },
         createBusiness: {
             type: BusinessType,
             args: {
