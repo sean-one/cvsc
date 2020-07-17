@@ -16,7 +16,10 @@ const userSchema = new Schema({
     password: {
         type: String,
         required: true
-    }
+    },
+    following: [{
+        type: Schema.Types.ObjectId,
+    }]
 }, { timestamps: Date });
 
 const User = mongoose.model('User', userSchema);

@@ -10,10 +10,9 @@ const googleMapsClient = require('@google/maps').createClient({
 
 const User = require('../data/models/user');
 const Contact = require('../data/models/contact');
+const Business = require('../data/models/business');
 //#region <MODEL IMPORTS>
 // const Location = require('../data/models/location');
-// const Brand = require('../data/models/brand');
-// const Dispensary = require('../data/models/dispensary');
 // const Event = require('../data/models/event');
 // const Contact = require('../data/models/contact');
 // const ImageStorage = require('../data/models/imagestorage');
@@ -42,9 +41,33 @@ const UserType = new GraphQLObjectType({
             resolve(parent, args){
                 return Contact.findOne({ contactFor: parent._id })
             }
+        },
+        following: {
+            type: new GraphQLList(BusinessType),
+            resolve(parent, args){
+                return Business.find({ _id: parent._id })
+            }
         }
     })
 });
+
+const BusinessType = new GraphQLObjectType({
+    name: 'Businesses',
+    fields: () => ({
+        _id: { type: GraphQLID },
+        createdAt: { type: GraphQLDate },
+        updatedAt: { type: GraphQLDate },
+        businessname: { type: GraphQLString },
+        about: { type: GraphQLString },
+        businessType: { type: GraphQLString },
+        contact: {
+            type: ContactType,
+            resolve(parent, args){
+                return Contact.findOne({ contactFor: parent._id })
+            }
+        }
+    })
+})
 
 const ContactType = new GraphQLObjectType({
     name: 'Contacts',
@@ -78,6 +101,24 @@ const RootQuery = new GraphQLObjectType({
             resolve(parent, args) {
                 return User.find({});
             }
+        },
+        businesses: {
+            type: new GraphQLList(BusinessType),
+            resolve(parent, args) {
+                return Business.find({});
+            }
+        },
+        brands: {
+            type: new GraphQLList(BusinessType),
+            resolve(parent, args) {
+                return Business.find({ businessType: 'brand'})
+            }
+        },
+        dispensaries: {
+            type: new GraphQLList(BusinessType),
+            resolve(parent, args) {
+                return Business.find({ businessType: 'dispensary'})
+            }
         }
     }
 });
@@ -93,13 +134,13 @@ const Mutation = new GraphQLObjectType({
             },
             resolve(parent, args){
                 const password = bcrypt.hashSync(args.password, 10);
-                let user = new User({
+                let newUser = new User({
                     username: args.username,
                     searchBy: args.username.toLowerCase(),
                     password: password
                 });
                 console.log(user);
-                return user.save()
+                return newUser.save()
             }
         },
         deleteUserByUsername: {
@@ -131,6 +172,33 @@ const Mutation = new GraphQLObjectType({
             async resolve(parent, args){
                 const password = bcrypt.hashSync(args.password, 10);
                 return await User.findByIdAndUpdate(args.id, { password: password }, { new: true } );
+            }
+        },
+        // NOT WORKING - LOOK INTO PUSHING INTO ARRAY
+        // follow: {
+        //     type: BusinessType,
+        //     args: {
+        //         userId: { type: GraphQLID },
+        //         businessId: { type: GraphQLID },
+        //     },
+        //     async resolve(parent, args){
+        //         return await User.findByIdAndUpdate(args.userId, { $push: { "following": args.businessId } }, { new: true });
+        //     }
+        // },
+        createBusiness: {
+            type: BusinessType,
+            args: {
+                businessname: { type: GraphQLString },
+                about: { type: GraphQLString },
+                businessType: { type: GraphQLString }
+            },
+            resolve(parent, args){
+                let newBusiness = new Business({
+                    businessname: args.businessname,
+                    about: args.about,
+                    businessType: args.businessType
+                });
+                return newBusiness.save();
             }
         },
         createContact: {
