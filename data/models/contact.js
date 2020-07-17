@@ -24,9 +24,15 @@ const contactSchema = new Schema({
     url: String,
     instagram: {
         type: String,
-        validate: checkInstagram
+        // validate: checkInstagram
     },
-    primary: String,
+    contactFor: {
+        type: Schema.Types.ObjectId,
+        validate: {
+            validator: async contactFor => await Contact.where({ contactFor }).countDocuments() === 0,
+            message: ({ value }) => `A contact for that ID already exist.`
+        }
+    }
 });
 
 const Contact = mongoose.model('Contact', contactSchema);

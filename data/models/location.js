@@ -5,11 +5,7 @@ const locationSchema = new Schema({
     formatted: String,
     city: String,
     lat: String,
-    lng: String,
-    refId: {
-        type: Schema.Types.ObjectId,
-        unique: true
-    }
+    lng: String
 });
 
 const Location = mongoose.model('Location', locationSchema);
