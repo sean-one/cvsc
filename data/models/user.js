@@ -8,18 +8,17 @@ const userSchema = new Schema({
             validator: async username => await User.where({ searchBy: username.toLowerCase() }).countDocuments() === 0,
             message: ({ value }) => `Username ${value} has already been taken.`
         },
-        required: true
+        required: [ true, 'username is required' ]
     },
     searchBy: {
         type: String
     },
     password: {
         type: String,
-        required: true
+        required: [ true, 'password is requird' ]
     },
     following: [{
         type: Schema.Types.ObjectId,
-        // need to add validation to make sure there are no duplicates
     }]
 }, { timestamps: Date });
 

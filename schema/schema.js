@@ -42,10 +42,16 @@ const UserType = new GraphQLObjectType({
                 return Contact.findOne({ contactFor: parent._id })
             }
         },
-        following: {
+        brandsFollowed: {
             type: new GraphQLList(BusinessType),
-            resolve(parent, args){
-                return Business.where('_id').in(parent.following)
+            resolve(parent, args) {
+                return Business.where('_id').in(parent.following).where({ businessType: 'brand' })
+            }
+        },
+        dispensariesFollowed: {
+            type: new GraphQLList(BusinessType),
+            resolve(parent, args) {
+                return Business.where('_id').in(parent.following).where({ businessType: 'dispensary' })
             }
         }
     })
@@ -181,7 +187,8 @@ const Mutation = new GraphQLObjectType({
                 businessId: { type: GraphQLID },
             },
             async resolve(parent, args){
-                return await User.findByIdAndUpdate(args.userId, { $push: { following: args.businessId } }, { new: true });
+                await User.findByIdAndUpdate(args.userId, { $addToSet: { following: args.businessId } }, { new: true });
+                return Business.findById(args.businessId);
             }
         },
         createBusiness: {
