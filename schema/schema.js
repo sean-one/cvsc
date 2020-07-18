@@ -87,8 +87,24 @@ const EventType = new GraphQLObjectType({
                 return User.findById(parent.author)
             }
         },
-        startdate: { type: GraphQLDate },
-        enddate: { type: GraphQLDate },
+        day: {
+            type: GraphQLString,
+            resolve(parent, args){
+                return parent.startdate.toDateString();
+            }
+        },
+        starttime: {
+            type: GraphQLString,
+            resolve(parent, args){
+                return parent.startdate.toLocaleTimeString('en-US');
+            }
+        },
+        endtime: {
+            type: GraphQLString,
+            resolve(parent, args) {
+                return parent.enddate.toLocaleTimeString();
+            }
+        },
         brands: {
             type: new GraphQLList(BusinessType),
             resolve(parent, args){
@@ -166,8 +182,9 @@ const RootQuery = new GraphQLObjectType({
             }
         },
         // event queries
+        // NEED - eventByCity, eventByDispensary, eventByBrand, eventByDate
         events: {
-            type: EventType,
+            type: new GraphQLList(EventType),
             resolve(parent, args){
                 return Event.find({})
             }
@@ -178,7 +195,7 @@ const RootQuery = new GraphQLObjectType({
 const Mutation = new GraphQLObjectType({
     name: 'Mutation',
     fields: {
-        // USER CRUB OPERATIONS
+        // user CRUD operations
         createUser: {
             type: UserType,
             args: {
@@ -192,33 +209,7 @@ const Mutation = new GraphQLObjectType({
                     searchBy: args.username.toLowerCase(),
                     password: password
                 });
-                console.log(user);
                 return newUser.save()
-            }
-        },
-        createEvent: {
-            type: EventType,
-            args: {
-                title: { type: GraphQLString },
-                about: { type: GraphQLString },
-                author: { type: GraphQLID },
-                startdate: { type: GraphQLDate },
-                enddate: { type: GraphQLDate },
-                brands: { type: GraphQLList(GraphQLID)},
-                dispensaryId: { type: GraphQLID }
-            },
-            resolve(parent, args){
-                let newEvent = new Event({
-                    title: args.title,
-                    about: args.about,
-                    author: args.author,
-                    startdate: new Date(args.startdate),
-                    enddate: new Date(args.enddate),
-                    brands: args.brands,
-                    dispensaryId: args.dispensaryId
-                });
-                console.log(newEvent);
-                return newEvent.save()
             }
         },
         updateUserPassword: {
@@ -252,7 +243,7 @@ const Mutation = new GraphQLObjectType({
                 return await User.findByIdAndDelete(args.id)
             }
         },
-        // ADD & REMOVE BUSINESS TO AND FROM USER FOLLOW LIST
+        // add & remove business ids from user follow list
         follow: {
             type: BusinessType,
             args: {
@@ -275,7 +266,7 @@ const Mutation = new GraphQLObjectType({
                 return Business.findById(args.businessId);
             }
         },
-        // BUSINESS CRUD OPERATIONS
+        // business CRUD operations
         createBusiness: {
             type: BusinessType,
             args: {
@@ -316,7 +307,7 @@ const Mutation = new GraphQLObjectType({
                 return await Business.findByIdAndDelete(args.id);
             }
         },
-        // CONTACT CRUD OPERATIONS
+        // contact CRUD operations
         createContact: {
             type: ContactType,
             args: {
@@ -378,7 +369,34 @@ const Mutation = new GraphQLObjectType({
                 await Business.findByIdAndUpdate(args.businessId, { contact: null }, { new: true });
                 return await Contact.findOneAndDelete({ contactFor: args.businessId });
             }
-        }
+        },
+        // event CRUD operations
+        // NEED - addBrand, removeBrand, updateStarttime, updateEndtime, deleteEvent
+        createEvent: {
+            type: EventType,
+            args: {
+                title: { type: GraphQLString },
+                about: { type: GraphQLString },
+                author: { type: GraphQLID },
+                startdate: { type: GraphQLDateTime },
+                enddate: { type: GraphQLDateTime },
+                brands: { type: GraphQLList(GraphQLID) },
+                dispensaryId: { type: GraphQLID }
+            },
+            resolve(parent, args) {
+                let newEvent = new Event({
+                    title: args.title,
+                    about: args.about,
+                    author: args.author,
+                    startdate: args.startdate,
+                    enddate: args.enddate,
+                    brands: args.brands,
+                    dispensaryId: args.dispensaryId
+                });
+                console.log(newEvent);
+                return newEvent.save();
+            }
+        },
     }
 })
 
