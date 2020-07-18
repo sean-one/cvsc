@@ -71,6 +71,13 @@ const BusinessType = new GraphQLObjectType({
             resolve(parent, args){
                 return Contact.findOne({ contactFor: parent._id })
             }
+        },
+        //! THIS IS NOT RETURNING WHAT I AM LOOKING FOR
+        events: {
+            type: new GraphQLList(EventType),
+            async resolve(parent, args){
+                return await Event.find({in: { brands: parent.id }});
+            }
         }
     })
 });
