@@ -132,6 +132,7 @@ const RootQuery = new GraphQLObjectType({
 const Mutation = new GraphQLObjectType({
     name: 'Mutation',
     fields: {
+        // USER CRUB OPERATIONS
         createUser: {
             type: UserType,
             args: {
@@ -180,6 +181,7 @@ const Mutation = new GraphQLObjectType({
                 return await User.findByIdAndUpdate(args.id, { password: password }, { new: true } );
             }
         },
+        // ADD & REMOVE BUSINESS TO AND FROM USER FOLLOW LIST
         follow: {
             type: BusinessType,
             args: {
@@ -191,6 +193,18 @@ const Mutation = new GraphQLObjectType({
                 return Business.findById(args.businessId);
             }
         },
+        unfollow: {
+            type: BusinessType,
+            args: {
+                userId: {type: GraphQLID },
+                businessId: {type: GraphQLID }
+            },
+            async resolve(parent, args){
+                await User.findByIdAndUpdate(args.userId, { $pull: { following: args.businessId} }, { new: true} );
+                return Business.findById(args.businessId);
+            }
+        },
+        // BUSINESS CRUD OPERATIONS
         createBusiness: {
             type: BusinessType,
             args: {
@@ -207,6 +221,21 @@ const Mutation = new GraphQLObjectType({
                 return newBusiness.save();
             }
         },
+        updateBusiness: {
+            type: BusinessType,
+            args: {
+                id: { type: GraphQLID },
+                businessname: { type: GraphQLString },
+                about: { type: GraphQLString }
+            },
+            async resolve(parent, args){
+                return await Business.findByIdAndUpdate(args.id, {
+                    businessname: args.businessname,
+                    about: args.about
+                }, { omitUndefined: true, new: true });
+            }
+        },
+        // CONTACT CRUD OPERATIONS
         createContact: {
             type: ContactType,
             args: {
@@ -247,6 +276,26 @@ const Mutation = new GraphQLObjectType({
                     }},
                     { omitUndefined: true, new: true }
                     )
+            }
+        },
+        removeUserContact: {
+            type: ContactType,
+            args: {
+                userId: { type: GraphQLID }
+            },
+            async resolve(parent, args){
+                await User.findByIdAndUpdate(args.userId, { contact: null }, { new: true });
+                return await Contact.findOneAndDelete({ contactFor: args.userId });
+            }
+        },
+        removeBusinessContact: {
+            type: ContactType,
+            args: {
+                businessId: { type: GraphQLID }
+            },
+            async resolve(parent, args){
+                await Business.findByIdAndUpdate(args.businessId, { contact: null }, { new: true });
+                return await Contact.findOneAndDelete({ contactFor: args.businessId });
             }
         }
     }
