@@ -114,6 +114,15 @@ const RootQuery = new GraphQLObjectType({
                 return Business.find({});
             }
         },
+        businessById: {
+            type: BusinessType,
+            args: {
+                id: { type: GraphQLID }
+            },
+            resolve(parent, args){
+                return Business.findById(args.id);
+            }
+        },
         brands: {
             type: new GraphQLList(BusinessType),
             resolve(parent, args) {
@@ -150,6 +159,17 @@ const Mutation = new GraphQLObjectType({
                 return newUser.save()
             }
         },
+        updateUserPassword: {
+            type: UserType,
+            args: {
+                id: { type: GraphQLID },
+                password: { type: GraphQLString }
+            },
+            async resolve(parent, args){
+                const password = bcrypt.hashSync(args.password, 10);
+                return await User.findByIdAndUpdate(args.id, { password: password }, { new: true } );
+            }
+        },
         deleteUserByUsername: {
             type: UserType,
             args: {
@@ -168,17 +188,6 @@ const Mutation = new GraphQLObjectType({
             },
             async resolve(parent, args){
                 return await User.findByIdAndDelete(args.id)
-            }
-        },
-        updateUserPassword: {
-            type: UserType,
-            args: {
-                id: { type: GraphQLID },
-                password: { type: GraphQLString }
-            },
-            async resolve(parent, args){
-                const password = bcrypt.hashSync(args.password, 10);
-                return await User.findByIdAndUpdate(args.id, { password: password }, { new: true } );
             }
         },
         // ADD & REMOVE BUSINESS TO AND FROM USER FOLLOW LIST
@@ -233,6 +242,16 @@ const Mutation = new GraphQLObjectType({
                     businessname: args.businessname,
                     about: args.about
                 }, { omitUndefined: true, new: true });
+            }
+        },
+        removeBusiness: {
+            type: BusinessType,
+            args: {
+                id: { type: GraphQLID }
+            },
+            // ! after this is removed there needs to be something that removes the business from users follow arrays
+            async resolve(parent, args){
+                return await Business.findByIdAndDelete(args.id);
             }
         },
         // CONTACT CRUD OPERATIONS
