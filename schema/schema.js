@@ -11,9 +11,9 @@ const googleMapsClient = require('@google/maps').createClient({
 const User = require('../data/models/user');
 const Contact = require('../data/models/contact');
 const Business = require('../data/models/business');
+const Event = require('../data/models/event');
 //#region <MODEL IMPORTS>
 // const Location = require('../data/models/location');
-// const Event = require('../data/models/event');
 // const Contact = require('../data/models/contact');
 // const ImageStorage = require('../data/models/imagestorage');
 //#endregion
@@ -73,6 +73,35 @@ const BusinessType = new GraphQLObjectType({
             }
         }
     })
+});
+
+const EventType = new GraphQLObjectType({
+    name: 'Events',
+    fields: () => ({
+        _id: { type: GraphQLID },
+        title: { type: GraphQLString },
+        about: { type: GraphQLString },
+        author: { 
+            type: UserType,
+            resolve(parent, args){
+                return User.findById(parent.author)
+            }
+        },
+        startdate: { type: GraphQLDate },
+        enddate: { type: GraphQLDate },
+        brands: {
+            type: new GraphQLList(BusinessType),
+            resolve(parent, args){
+                return Business.where('_id').in(parent.brands)
+            }
+        },
+        dispensary: {
+            type: BusinessType,
+            resolve(parent, args){
+                return Business.findById(parent.dispensaryId);
+            }
+        }
+    })
 })
 
 const ContactType = new GraphQLObjectType({
@@ -108,6 +137,7 @@ const RootQuery = new GraphQLObjectType({
                 return User.find({});
             }
         },
+        // business queries
         businesses: {
             type: new GraphQLList(BusinessType),
             resolve(parent, args) {
@@ -134,6 +164,13 @@ const RootQuery = new GraphQLObjectType({
             resolve(parent, args) {
                 return Business.find({ businessType: 'dispensary'})
             }
+        },
+        // event queries
+        events: {
+            type: EventType,
+            resolve(parent, args){
+                return Event.find({})
+            }
         }
     }
 });
@@ -157,6 +194,31 @@ const Mutation = new GraphQLObjectType({
                 });
                 console.log(user);
                 return newUser.save()
+            }
+        },
+        createEvent: {
+            type: EventType,
+            args: {
+                title: { type: GraphQLString },
+                about: { type: GraphQLString },
+                author: { type: GraphQLID },
+                startdate: { type: GraphQLDate },
+                enddate: { type: GraphQLDate },
+                brands: { type: GraphQLList(GraphQLID)},
+                dispensaryId: { type: GraphQLID }
+            },
+            resolve(parent, args){
+                let newEvent = new Event({
+                    title: args.title,
+                    about: args.about,
+                    author: args.author,
+                    startdate: new Date(args.startdate),
+                    enddate: new Date(args.enddate),
+                    brands: args.brands,
+                    dispensaryId: args.dispensaryId
+                });
+                console.log(newEvent);
+                return newEvent.save()
             }
         },
         updateUserPassword: {

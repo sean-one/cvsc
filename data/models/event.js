@@ -4,12 +4,6 @@ const Schema = mongoose.Schema;
 const eventSchema = new Schema({
     title: {
         type: String,
-        validate: {
-            validator: () => {
-                console.log('trigger')
-            },
-            message: ({ value }) => 'there was an error'
-        },
         required: true
     },
     about: String,
@@ -20,19 +14,23 @@ const eventSchema = new Schema({
     },
     startdate: {
         type: Date,
-        required: true
+        min: [ Date.now(), 'quit living in the past man'],
+        max: [new Date(Date.now() + (60*24*60*60*1000)), 'thats too far out man'],
+        required: [ true, 'needs a start date']
     },
     enddate: {
         type: Date,
-        required: true
+        min: [Date.now(), 'quit living in the past man'],
+        max: [new Date(Date.now() + (60 * 24 * 60 * 60 * 1000)), 'thats too far out man'],
+        required: [true, 'needs a end date']
     },
     brands: [{
         type: Schema.Types.ObjectId,
-        ref: 'Brand',
+        ref: 'Business',
     }],
     dispensaryId: { 
         type: Schema.Types.ObjectId,
-        ref: 'Dispensary',
+        ref: 'Business',
         required: true
     }
 }, { timestamps: Date });
