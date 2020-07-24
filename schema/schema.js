@@ -14,7 +14,6 @@ const Business = require('../data/models/business');
 const Event = require('../data/models/event');
 //#region <MODEL IMPORTS>
 // const Location = require('../data/models/location');
-// const Contact = require('../data/models/contact');
 // const ImageStorage = require('../data/models/imagestorage');
 //#endregion
 
@@ -38,7 +37,7 @@ const UserType = new GraphQLObjectType({
         password: { type: new GraphQLNonNull(GraphQLString) },
         contact: {
             type: ContactType,
-            resolve(parent, args){
+            resolve(parent, args) {
                 return Contact.findOne({ contactFor: parent._id })
             }
         },
@@ -68,15 +67,18 @@ const BusinessType = new GraphQLObjectType({
         businessType: { type: GraphQLString },
         contact: {
             type: ContactType,
-            resolve(parent, args){
+            resolve(parent, args) {
                 return Contact.findOne({ contactFor: parent._id })
             }
         },
-        //! THIS IS NOT RETURNING WHAT I AM LOOKING FOR
         events: {
             type: new GraphQLList(EventType),
-            async resolve(parent, args){
-                return await Event.find({in: { brands: parent.id }});
+            async resolve(parent, args) {
+                if (parent.businessType == 'dispensary') {
+                    return await Event.find({ dispensaryId: parent.id });
+                } else {
+                    return await Event.find({ brands: { $all: [parent.id] } });
+                }
             }
         }
     })
@@ -88,22 +90,22 @@ const EventType = new GraphQLObjectType({
         _id: { type: GraphQLID },
         title: { type: GraphQLString },
         about: { type: GraphQLString },
-        author: { 
+        author: {
             type: UserType,
-            resolve(parent, args){
+            resolve(parent, args) {
                 return User.findById(parent.author)
             }
         },
         day: {
             type: GraphQLString,
-            resolve(parent, args){
+            resolve(parent, args) {
                 return parent.startdate.toDateString();
             }
         },
         starttime: {
             type: GraphQLString,
-            resolve(parent, args){
-                return parent.startdate.toLocaleTimeString('en-US');
+            resolve(parent, args) {
+                return parent.startdate.toLocaleTimeString();
             }
         },
         endtime: {
@@ -114,18 +116,18 @@ const EventType = new GraphQLObjectType({
         },
         brands: {
             type: new GraphQLList(BusinessType),
-            resolve(parent, args){
+            resolve(parent, args) {
                 return Business.where('_id').in(parent.brands)
             }
         },
         dispensary: {
             type: BusinessType,
-            resolve(parent, args){
+            resolve(parent, args) {
                 return Business.findById(parent.dispensaryId);
             }
         }
     })
-})
+});
 
 const ContactType = new GraphQLObjectType({
     name: 'Contacts',
@@ -309,7 +311,7 @@ const Mutation = new GraphQLObjectType({
             args: {
                 id: { type: GraphQLID }
             },
-            // ! after this is removed there needs to be something that removes the business from users follow arrays
+            // ! this needs to be a cascading delete through user follows and events
             async resolve(parent, args){
                 return await Business.findByIdAndDelete(args.id);
             }
@@ -378,32 +380,84 @@ const Mutation = new GraphQLObjectType({
             }
         },
         // event CRUD operations
-        // NEED - addBrand, removeBrand, updateStarttime, updateEndtime, deleteEvent
         createEvent: {
             type: EventType,
             args: {
                 title: { type: GraphQLString },
                 about: { type: GraphQLString },
                 author: { type: GraphQLID },
-                startdate: { type: GraphQLDateTime },
-                enddate: { type: GraphQLDateTime },
-                brands: { type: GraphQLList(GraphQLID) },
+                startdate: { type: GraphQLString },
+                enddate: { type: GraphQLString },
+                brands: { type: new GraphQLList(GraphQLID) },
                 dispensaryId: { type: GraphQLID }
             },
             resolve(parent, args) {
+                let startdate = new Date(args.startdate);
+                let enddate = new Date(args.enddate);
                 let newEvent = new Event({
                     title: args.title,
                     about: args.about,
                     author: args.author,
-                    startdate: args.startdate,
-                    enddate: args.enddate,
+                    startdate: startdate,
+                    enddate: enddate,
                     brands: args.brands,
                     dispensaryId: args.dispensaryId
                 });
-                console.log(newEvent);
                 return newEvent.save();
             }
         },
+        updateDateTime: {
+            type: EventType,
+            args: {
+                id: { type: GraphQLID },
+                startdate: { type: GraphQLString },
+                enddate: { type: GraphQLString }
+            },
+            async resolve(parent, args){
+                let startdate = new Date(args.startdate);
+                let enddate = new Date(args.enddate);
+                return await Event.findOneAndUpdate(
+                    { _id: args.id },
+                    { $set: {
+                        "startdate": startdate,
+                        "enddate": enddate
+                    }},
+                    { omitUndefined: true, new: true }
+                )
+                 
+            }
+        },
+        addBrandToEvent: {
+            type: EventType,
+            args: {
+                eventId: { type: GraphQLID },
+                brandId: { type: GraphQLID }
+            },
+            async resolve(parent, args) {
+               return await Event.findByIdAndUpdate(args.eventId, { $addToSet: { brands: args.brandId }}, { new: true });
+            }
+        },
+        removeBrandFromEvent: {
+            type: EventType,
+            args: {
+                eventId: { type: GraphQLID },
+                brandId: { type: GraphQLID }
+            },
+            async resolve(parent, args) {
+                return await Event.findByIdAndUpdate(args.eventId, { $pull: { brands: args.brandId } }, { new: true });
+                
+            }
+
+        },
+        removeEvent: {
+            type: EventType,
+            args: {
+                id: { type: GraphQLID }
+            },
+            async resolve(parent, args) {
+                return await Event.findByIdAndDelete(args.id);
+            }
+        }
     }
 })
 
