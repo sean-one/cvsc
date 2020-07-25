@@ -330,6 +330,7 @@ const Mutation = new GraphQLObjectType({
                 id: { type: GraphQLID }
             },
             async resolve(parent, args){
+                await User.findOneAndUpdate({ following: { $in: [args.id] } }, { $pull: { following: [args.id] } }, { new: true });
                 const businessDoc = await Business.findById(args.id);
                 if (businessDoc.businessType == 'brand') {
                     await Event.findOneAndUpdate({ brands: { $in: [args.id] } }, { $pull: { brands: [args.id] } }, { new: true });
