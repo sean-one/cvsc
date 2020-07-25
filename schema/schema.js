@@ -191,11 +191,29 @@ const RootQuery = new GraphQLObjectType({
             }
         },
         // event queries
-        // NEED - eventByCity, eventByDispensary, eventByBrand, eventByDate
+        // NEED - eventByCity, eventByDate
         events: {
             type: new GraphQLList(EventType),
             resolve(parent, args){
                 return Event.find({})
+            }
+        },
+        eventsByDispensary: {
+            type: new GraphQLList(EventType),
+            args: {
+                dispensaryId: { type: GraphQLID }
+            },
+            async resolve(parent, args){
+                return await Event.find({ dispensaryId: args.dispensaryId })
+            }
+        },
+        eventsByBrand: {
+            type: new GraphQLList(EventType),
+            args: {
+                brandId: { type: GraphQLID }
+            },
+            async resolve(parent, args){
+                return await Event.find({ brands: { $all: [args.brandId] } })
             }
         }
     }
@@ -311,8 +329,13 @@ const Mutation = new GraphQLObjectType({
             args: {
                 id: { type: GraphQLID }
             },
-            // ! this needs to be a cascading delete through user follows and events
             async resolve(parent, args){
+                const businessDoc = await Business.findById(args.id);
+                if (businessDoc.businessType == 'brand') {
+                    await Event.findOneAndUpdate({ brands: { $in: [args.id] } }, { $pull: { brands: [args.id] } }, { new: true });
+                } else {
+                    await Event.deleteMany({ dispensaryId: args.id })
+                }
                 return await Business.findByIdAndDelete(args.id);
             }
         },
@@ -391,6 +414,7 @@ const Mutation = new GraphQLObjectType({
                 brands: { type: new GraphQLList(GraphQLID) },
                 dispensaryId: { type: GraphQLID }
             },
+            //! need to confirm brands and dispensary types are valid and correct
             resolve(parent, args) {
                 let startdate = new Date(args.startdate);
                 let enddate = new Date(args.enddate);
