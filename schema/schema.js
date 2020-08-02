@@ -198,6 +198,15 @@ const RootQuery = new GraphQLObjectType({
                 return Event.find({})
             }
         },
+        eventById: {
+            type: EventType,
+            args: {
+                id: { type: GraphQLID }
+            },
+            resolve(parent, args) {
+                return Event.findById(args.id);
+            }
+        },
         eventsByDispensary: {
             type: new GraphQLList(EventType),
             args: {
@@ -243,10 +252,10 @@ const Mutation = new GraphQLObjectType({
             type: UserType,
             args: {
                 id: { type: GraphQLID },
-                password: { type: GraphQLString }
+                newPassword: { type: GraphQLString }
             },
             async resolve(parent, args){
-                const password = bcrypt.hashSync(args.password, 10);
+                const password = bcrypt.hashSync(args.newPassword, 10);
                 return await User.findByIdAndUpdate(args.id, { password: password }, { new: true } );
             }
         },
@@ -473,6 +482,19 @@ const Mutation = new GraphQLObjectType({
                 
             }
 
+        },
+        eventByDate: {
+            type: new GraphQLList(EventType),
+            args: {
+                startdate: { type: GraphQLString },
+                enddate: { type: GraphQLString }
+            },
+            resolve(parent, args){
+                return Event.find({ startdate: {
+                    '$get': new Date(args.startdate),
+                    '$lt': new Date(args.enddate)``
+                } })
+            }
         },
         removeEvent: {
             type: EventType,
