@@ -1,13 +1,14 @@
 const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 
-const locationSchema = new Schema({
+const CoordinateModel = require('./coordinates');
+
+const businessAddressSchema = new Schema({
     formatted: String,
     city: String,
-    lat: String,
-    lng: String
+    location: CoordinateModel.schema
 });
 
-const Location = mongoose.model('Location', locationSchema);
+const BusinessAddress = mongoose.model('Business', locationSchema);
 
 module.exports = Location;

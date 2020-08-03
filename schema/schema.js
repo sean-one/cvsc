@@ -12,8 +12,8 @@ const User = require('../data/models/user');
 const Contact = require('../data/models/contact');
 const Business = require('../data/models/business');
 const Event = require('../data/models/event');
-//#region <MODEL IMPORTS>
 // const Location = require('../data/models/location');
+//#region <MODEL IMPORTS>
 // const ImageStorage = require('../data/models/imagestorage');
 //#endregion
 
@@ -142,6 +142,17 @@ const ContactType = new GraphQLObjectType({
     })
 });
 
+// const LocationType = new GraphQLObjectType({
+//     name: 'Locations',
+//     fields: () => ({
+//         _id: { type: GraphQLID },
+//         createdAt: { type: GraphQLDate },
+//         updatedAt: { type: GraphQLDate },
+//         longitude: { type: GraphQLString },
+//         latitude: { type: GraphQLString },
+//     })
+// });
+
 const RootQuery = new GraphQLObjectType({
     name: 'RootQueryType',
     fields: {
@@ -191,7 +202,7 @@ const RootQuery = new GraphQLObjectType({
             }
         },
         // event queries
-        // NEED - eventByCity, eventByDate
+        // NEED - eventByCity
         events: {
             type: new GraphQLList(EventType),
             resolve(parent, args){
@@ -224,7 +235,22 @@ const RootQuery = new GraphQLObjectType({
             async resolve(parent, args){
                 return await Event.find({ brands: { $all: [args.brandId] } })
             }
-        }
+        },
+        eventByDate: {
+            type: new GraphQLList(EventType),
+            args: {
+                startdate: { type: GraphQLString },
+                enddate: { type: GraphQLString }
+            },
+            resolve(parent, args) {
+                return Event.find({
+                    startdate: {
+                        '$gt': new Date(args.startdate),
+                        '$lt': new Date(args.enddate)
+                    }
+                })
+            }
+        },
     }
 });
 
@@ -412,6 +438,32 @@ const Mutation = new GraphQLObjectType({
                 return await Contact.findOneAndDelete({ contactFor: args.businessId });
             }
         },
+        // loction CRUD operations
+        // addLocation: {
+        //     type: LocationType,
+        //     args: {
+        //         addressString: { type: GraphQLString },
+        //         businessId: { type: GraphQLID }
+        //     },
+        //     resolve(parent, args) {
+        //         googleMapsClient.geocode({ address: args.addressString })
+        //             .asPromise()
+        //             .then((response) => {
+        //                 let location = new Location({
+        //                     formatted: response.json.results[0].formatted_address,
+        //                     city: response.json.results[0].address_components[2].long_name,
+        //                     lat: response.json.results[0].geometry.location.lat,
+        //                     lng: response.json.results[0].geometry.location.lng,
+        //                     businessId: args.businessId
+        //                 })
+        //                 return location.save()
+        //             })
+        //             .catch((err) => {
+        //                 console.log(err);
+        //             });
+        //         return
+        //     }
+        // },
         // event CRUD operations
         createEvent: {
             type: EventType,
@@ -482,19 +534,6 @@ const Mutation = new GraphQLObjectType({
                 
             }
 
-        },
-        eventByDate: {
-            type: new GraphQLList(EventType),
-            args: {
-                startdate: { type: GraphQLString },
-                enddate: { type: GraphQLString }
-            },
-            resolve(parent, args){
-                return Event.find({ startdate: {
-                    '$get': new Date(args.startdate),
-                    '$lt': new Date(args.enddate)``
-                } })
-            }
         },
         removeEvent: {
             type: EventType,
