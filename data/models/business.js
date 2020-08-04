@@ -1,6 +1,8 @@
 const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 
+const CoordinateModel = require('./coordinates');
+
 const businessSchema = new Schema({
     businessname: {
         type: String

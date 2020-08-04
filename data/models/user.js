@@ -22,7 +22,7 @@ const userSchema = new Schema({
     following: [{
         type: Schema.Types.ObjectId,
     }],
-    location: CoordinateModel.schema
+    location: [CoordinateModel.schema]
 }, { timestamps: Date });
 
 const User = mongoose.model('User', userSchema);

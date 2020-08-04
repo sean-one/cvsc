@@ -12,7 +12,6 @@ const User = require('../data/models/user');
 const Contact = require('../data/models/contact');
 const Business = require('../data/models/business');
 const Event = require('../data/models/event');
-// const Location = require('../data/models/location');
 //#region <MODEL IMPORTS>
 // const ImageStorage = require('../data/models/imagestorage');
 //#endregion
@@ -35,6 +34,7 @@ const UserType = new GraphQLObjectType({
         updatedAt: { type: GraphQLDate },
         username: { type: new GraphQLNonNull(GraphQLString) },
         password: { type: new GraphQLNonNull(GraphQLString) },
+        location: { type: new GraphQLList(GraphQLInt) },
         contact: {
             type: ContactType,
             resolve(parent, args) {
@@ -80,7 +80,12 @@ const BusinessType = new GraphQLObjectType({
                     return await Event.find({ brands: { $all: [parent.id] } });
                 }
             }
-        }
+        },
+        // address: {
+        //     formatted: { type: GraphQLString },
+        //     city: { type: GraphQLString },
+        //     coordinates: { type: new GraphQLList(GraphQLInt) }
+        // }
     })
 });
 
@@ -141,17 +146,6 @@ const ContactType = new GraphQLObjectType({
         instagram: { type: GraphQLString }
     })
 });
-
-// const LocationType = new GraphQLObjectType({
-//     name: 'Locations',
-//     fields: () => ({
-//         _id: { type: GraphQLID },
-//         createdAt: { type: GraphQLDate },
-//         updatedAt: { type: GraphQLDate },
-//         longitude: { type: GraphQLString },
-//         latitude: { type: GraphQLString },
-//     })
-// });
 
 const RootQuery = new GraphQLObjectType({
     name: 'RootQueryType',
@@ -272,6 +266,16 @@ const Mutation = new GraphQLObjectType({
                     password: password
                 });
                 return newUser.save()
+            }
+        },
+        getUserLocation: {
+            type: UserType,
+            args: {
+                id: { type: GraphQLID },
+                coordinates: { type: GraphQLObjectType }
+            },
+            async resolve(parent, args){
+                return await User.findByIdAndUpdate(args.id, { location: args.coordinates }, { new: true });
             }
         },
         updateUserPassword: {
@@ -438,32 +442,6 @@ const Mutation = new GraphQLObjectType({
                 return await Contact.findOneAndDelete({ contactFor: args.businessId });
             }
         },
-        // loction CRUD operations
-        // addLocation: {
-        //     type: LocationType,
-        //     args: {
-        //         addressString: { type: GraphQLString },
-        //         businessId: { type: GraphQLID }
-        //     },
-        //     resolve(parent, args) {
-        //         googleMapsClient.geocode({ address: args.addressString })
-        //             .asPromise()
-        //             .then((response) => {
-        //                 let location = new Location({
-        //                     formatted: response.json.results[0].formatted_address,
-        //                     city: response.json.results[0].address_components[2].long_name,
-        //                     lat: response.json.results[0].geometry.location.lat,
-        //                     lng: response.json.results[0].geometry.location.lng,
-        //                     businessId: args.businessId
-        //                 })
-        //                 return location.save()
-        //             })
-        //             .catch((err) => {
-        //                 console.log(err);
-        //             });
-        //         return
-        //     }
-        // },
         // event CRUD operations
         createEvent: {
             type: EventType,
@@ -476,7 +454,6 @@ const Mutation = new GraphQLObjectType({
                 brands: { type: new GraphQLList(GraphQLID) },
                 dispensaryId: { type: GraphQLID }
             },
-            //! need to confirm brands and dispensary types are valid and correct
             resolve(parent, args) {
                 let startdate = new Date(args.startdate);
                 let enddate = new Date(args.enddate);
