@@ -34,7 +34,7 @@ const UserType = new GraphQLObjectType({
         updatedAt: { type: GraphQLDate },
         username: { type: new GraphQLNonNull(GraphQLString) },
         password: { type: new GraphQLNonNull(GraphQLString) },
-        location: { type: new GraphQLList(GraphQLInt) },
+        // location: { type: new GraphQLList(GraphQLInt) },
         contact: {
             type: ContactType,
             resolve(parent, args) {
@@ -272,10 +272,11 @@ const Mutation = new GraphQLObjectType({
             type: UserType,
             args: {
                 id: { type: GraphQLID },
-                coordinates: { type: GraphQLObjectType }
+                coordinates: { type: new GraphQLList(GraphQLInt) }
             },
             async resolve(parent, args){
-                return await User.findByIdAndUpdate(args.id, { location: args.coordinates }, { new: true });
+                console.log(args)
+                return await User.findByIdAndUpdate(args.id, { location: { $addToSet: { coordinates: args.coordinates } } }, { new: true });
             }
         },
         updateUserPassword: {
