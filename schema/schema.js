@@ -2,12 +2,6 @@ const graphql = require('graphql');
 const { GraphQLDate, GraphQLDateTime } = require('graphql-iso-date');
 const bcrypt = require('bcrypt');
 
-// google geocoder for location
-const googleMapsClient = require('@google/maps').createClient({
-    key: process.env.GEOCODER_API_KEY,
-    Promise: Promise
-});
-
 const User = require('../data/models/user');
 const Contact = require('../data/models/contact');
 const Business = require('../data/models/business');
@@ -22,6 +16,7 @@ const {
     GraphQLSchema,
     GraphQLList,
     GraphQLInt,
+    GraphQLFloat,
     GraphQLID,
     GraphQLNonNull
 } = graphql;
@@ -34,7 +29,6 @@ const UserType = new GraphQLObjectType({
         updatedAt: { type: GraphQLDate },
         username: { type: new GraphQLNonNull(GraphQLString) },
         password: { type: new GraphQLNonNull(GraphQLString) },
-        // location: { type: new GraphQLList(GraphQLInt) },
         contact: {
             type: ContactType,
             resolve(parent, args) {
@@ -65,6 +59,9 @@ const BusinessType = new GraphQLObjectType({
         businessname: { type: GraphQLString },
         about: { type: GraphQLString },
         businessType: { type: GraphQLString },
+        location: {
+            type: LocationType,
+        },
         contact: {
             type: ContactType,
             resolve(parent, args) {
@@ -80,12 +77,7 @@ const BusinessType = new GraphQLObjectType({
                     return await Event.find({ brands: { $all: [parent.id] } });
                 }
             }
-        },
-        // address: {
-        //     formatted: { type: GraphQLString },
-        //     city: { type: GraphQLString },
-        //     coordinates: { type: new GraphQLList(GraphQLInt) }
-        // }
+        }
     })
 });
 
@@ -144,6 +136,15 @@ const ContactType = new GraphQLObjectType({
         email: { type: GraphQLString },
         url: { type: GraphQLString },
         instagram: { type: GraphQLString }
+    })
+});
+
+const LocationType = new GraphQLObjectType({
+    name: 'Locations',
+    fields: () => ({
+        _id: { type: GraphQLID },
+        coordinates: { type: GraphQLList(GraphQLFloat) },
+        city: { type: GraphQLString }
     })
 });
 
@@ -268,17 +269,6 @@ const Mutation = new GraphQLObjectType({
                 return newUser.save()
             }
         },
-        getUserLocation: {
-            type: UserType,
-            args: {
-                id: { type: GraphQLID },
-                coordinates: { type: new GraphQLList(GraphQLInt) }
-            },
-            async resolve(parent, args){
-                console.log(args)
-                return await User.findByIdAndUpdate(args.id, { location: { $addToSet: { coordinates: args.coordinates } } }, { new: true });
-            }
-        },
         updateUserPassword: {
             type: UserType,
             args: {
@@ -339,15 +329,29 @@ const Mutation = new GraphQLObjectType({
             args: {
                 businessname: { type: GraphQLString },
                 about: { type: GraphQLString },
-                businessType: { type: GraphQLString }
+                businessType: { type: GraphQLString },
+                businessAddress: { type: GraphQLString }
             },
             resolve(parent, args){
                 let newBusiness = new Business({
                     businessname: args.businessname,
                     about: args.about,
-                    businessType: args.businessType
+                    businessType: args.businessType,
+                    address: args.businessAddress
                 });
                 return newBusiness.save();
+            }
+        },
+        addBusinessLocation: {
+            type: BusinessType,
+            args: {
+                businessId: { type: GraphQLID },
+                businessAddress: { type: GraphQLString }
+            },
+            async resolve(parent, args){
+                const busDoc = await Business.findById(args.businessId);
+                busDoc.address = args.businessAddress;
+                return busDoc.save()
             }
         },
         updateBusiness: {

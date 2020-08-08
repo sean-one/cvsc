@@ -1,14 +1,20 @@
 const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 
-const CoordinateModel = require('./coordinates');
-
-const businessAddressSchema = new Schema({
-    formatted: String,
-    city: String,
-    location: CoordinateModel.schema
+const locationSchema = new Schema({
+    type: {
+        type: String,
+        enum: ['Point'],
+        required: true
+    },
+    coordinates: {
+        type: [Number],
+        required: true,
+        // index: '2dsphere'
+    },
+    city: String
 });
 
-const BusinessAddress = mongoose.model('Business', locationSchema);
+const Location = mongoose.model('Location', locationSchema);
 
 module.exports = Location;
