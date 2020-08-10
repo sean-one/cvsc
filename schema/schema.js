@@ -6,6 +6,7 @@ const User = require('../data/models/user');
 const Contact = require('../data/models/contact');
 const Business = require('../data/models/business');
 const Event = require('../data/models/event');
+const googleMapsClient = require('../utils/geocoder');
 //#region <MODEL IMPORTS>
 // const ImageStorage = require('../data/models/imagestorage');
 //#endregion
@@ -16,6 +17,7 @@ const {
     GraphQLSchema,
     GraphQLList,
     GraphQLInt,
+    GraphQLInputObjectType,
     GraphQLFloat,
     GraphQLID,
     GraphQLNonNull
@@ -29,12 +31,7 @@ const UserType = new GraphQLObjectType({
         updatedAt: { type: GraphQLDate },
         username: { type: new GraphQLNonNull(GraphQLString) },
         password: { type: new GraphQLNonNull(GraphQLString) },
-        contact: {
-            type: ContactType,
-            resolve(parent, args) {
-                return Contact.findOne({ contactFor: parent._id })
-            }
-        },
+        contact: { type: ContactType },
         brandsFollowed: {
             type: new GraphQLList(BusinessType),
             resolve(parent, args) {
@@ -59,9 +56,8 @@ const BusinessType = new GraphQLObjectType({
         businessname: { type: GraphQLString },
         about: { type: GraphQLString },
         businessType: { type: GraphQLString },
-        location: {
-            type: LocationType,
-        },
+        address: { type: GraphQLString },
+        location: { type: LocationType },
         contact: {
             type: ContactType,
             resolve(parent, args) {
@@ -139,12 +135,23 @@ const ContactType = new GraphQLObjectType({
     })
 });
 
+const InputContactType = new GraphQLInputObjectType({
+    name: 'ContactInput',
+    fields: () => ({
+        phone: { type: GraphQLString },
+        email: { type: GraphQLString },
+        url: { type: GraphQLString },
+        instagram: { type: GraphQLString },
+    })
+});
+
 const LocationType = new GraphQLObjectType({
     name: 'Locations',
     fields: () => ({
         _id: { type: GraphQLID },
         coordinates: { type: GraphQLList(GraphQLFloat) },
-        city: { type: GraphQLString }
+        city: { type: GraphQLString },
+        place_id: { type: GraphQLString }
     })
 });
 
@@ -257,29 +264,48 @@ const Mutation = new GraphQLObjectType({
             type: UserType,
             args: {
                 username: { type: GraphQLString },
-                password: { type: GraphQLString }
+                password: { type: GraphQLString },
+                contact: { type: InputContactType }
             },
             resolve(parent, args){
                 const password = bcrypt.hashSync(args.password, 10);
                 let newUser = new User({
                     username: args.username,
                     searchBy: args.username.toLowerCase(),
-                    password: password
+                    password: password,
+                    contact: args.contact
                 });
                 return newUser.save()
             }
         },
-        updateUserPassword: {
+        updateUser: {
             type: UserType,
             args: {
                 id: { type: GraphQLID },
-                newPassword: { type: GraphQLString }
+                newPassword: { type: GraphQLString },
+                contact: { type: InputContactType }
             },
-            async resolve(parent, args){
-                const password = bcrypt.hashSync(args.newPassword, 10);
-                return await User.findByIdAndUpdate(args.id, { password: password }, { new: true } );
+            async resolve(parent, args) {
+                if(args.newPassword){
+                    const password = bcrypt.hashSync(args.newPassword, 10);
+                }
+                // return await User.findByIdAndUpdate(args.id, { password: password }, { new: true });
+
+                // console.log('no password');
+                return
             }
         },
+        // updateUserPassword: {
+        //     type: UserType,
+        //     args: {
+        //         id: { type: GraphQLID },
+        //         newPassword: { type: GraphQLString }
+        //     },
+        //     async resolve(parent, args){
+        //         const password = bcrypt.hashSync(args.newPassword, 10);
+        //         return await User.findByIdAndUpdate(args.id, { password: password }, { new: true } );
+        //     }
+        // },
         deleteUserByUsername: {
             type: UserType,
             args: {
@@ -332,26 +358,23 @@ const Mutation = new GraphQLObjectType({
                 businessType: { type: GraphQLString },
                 businessAddress: { type: GraphQLString }
             },
-            resolve(parent, args){
+            async resolve(parent, args){
+                const geoCode = await googleMapsClient.geocode({ address: args.businessAddress }).asPromise();
+                console.log(geoCode.json.results[0].geometry.bounds);
                 let newBusiness = new Business({
                     businessname: args.businessname,
                     about: args.about,
                     businessType: args.businessType,
-                    address: args.businessAddress
+                    address: geoCode.json.results[0].formatted_address,
+                    location: {
+                        type: 'Point',
+                        // Note that longitude comes first in a GeoJSON coordinate array, not latitude.
+                        coordinates: [geoCode.json.results[0].geometry.location.lng, geoCode.json.results[0].geometry.location.lat],
+                        city: geoCode.json.results[0].address_components[2].long_name,
+                        place_id: geoCode.json.results[0].place_id
+                    }
                 });
                 return newBusiness.save();
-            }
-        },
-        addBusinessLocation: {
-            type: BusinessType,
-            args: {
-                businessId: { type: GraphQLID },
-                businessAddress: { type: GraphQLString }
-            },
-            async resolve(parent, args){
-                const busDoc = await Business.findById(args.businessId);
-                busDoc.address = args.businessAddress;
-                return busDoc.save()
             }
         },
         updateBusiness: {
@@ -359,13 +382,28 @@ const Mutation = new GraphQLObjectType({
             args: {
                 id: { type: GraphQLID },
                 businessname: { type: GraphQLString },
-                about: { type: GraphQLString }
+                about: { type: GraphQLString },
+                businessAddress: { type: GraphQLString }
             },
             async resolve(parent, args){
-                return await Business.findByIdAndUpdate(args.id, {
+                const updateObject = {
                     businessname: args.businessname,
                     about: args.about
-                }, { omitUndefined: true, new: true });
+                }
+                if (!args.businessAddress) {
+                    console.log('no address included')
+                    return await Business.findByIdAndUpdate(args.id, updateObject, { omitUndefined: true, new: true });
+                }
+                const geoCode = await googleMapsClient.geocode({ address: args.businessAddress }).asPromise();
+                updateObject.address = geoCode.json.results[0].formatted_address;
+                updateObject.location = {
+                    type: 'Point',
+                    coordinates: [geoCode.json.results[0].geometry.location.lng, geoCode.json.results[0].geometry.location.lat],
+                    city: geoCode.json.results[0].address_components[2].long_name,
+                    place_id: geoCode.json.results[0].place_id
+                }
+                console.log('created with location object');
+                return await Business.findByIdAndUpdate(args.id, updateObject, { omitUndefined: true, new: true });
             }
         },
         removeBusiness: {
@@ -374,13 +412,19 @@ const Mutation = new GraphQLObjectType({
                 id: { type: GraphQLID }
             },
             async resolve(parent, args){
+                // remove business from any user follow list
                 await User.findOneAndUpdate({ following: { $in: [args.id] } }, { $pull: { following: [args.id] } }, { new: true });
                 const businessDoc = await Business.findById(args.id);
+                // remove business from any upcoming events
+                // ! this needs to check for the date so that business is removed only from "UPCOMING" events
                 if (businessDoc.businessType == 'brand') {
                     await Event.findOneAndUpdate({ brands: { $in: [args.id] } }, { $pull: { brands: [args.id] } }, { new: true });
                 } else {
+                    // if the business is a dispensary then any upcoming events will be canceled
+                    //! this also needs to check for a date to determin "UPCOMING" events are only one removed
                     await Event.deleteMany({ dispensaryId: args.id })
                 }
+                // finally delete the actual business entry
                 return await Business.findByIdAndDelete(args.id);
             }
         },

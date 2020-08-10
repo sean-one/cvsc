@@ -10,9 +10,10 @@ const locationSchema = new Schema({
     coordinates: {
         type: [Number],
         required: true,
-        // index: '2dsphere'
+        index: '2dsphere'
     },
-    city: String
+    city: String,
+    place_id: String
 });
 
 const Location = mongoose.model('Location', locationSchema);
