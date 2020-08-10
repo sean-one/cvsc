@@ -1,8 +1,6 @@
 const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 
-const User = require('./user');
-
 const checkInstagram = [
     {
         validator: async instagram => await /^(?!.*\.\.)(?!.*\.$)[^\W][\w.]{0,29}$/.test(instagram),
@@ -18,26 +16,25 @@ const contactSchema = new Schema({
     phone: String,
     email: {
         type: String,
-        unique: true,
-        validate: {
-            validator: async email => await User.where({ contact: this.email}).countDocuments() === 0,
-            message: ({ value }) => `That email (${value}) is already associated with an account.`
-        }
+        // validate: {
+        //     validator: async email => await User.where({ contact: this.email}).countDocuments() === 0,
+        //     message: ({ value }) => `That email (${value}) is already associated with an account.`
+        // }
     },
     url: String,
     instagram: {
         type: String,
         // validate: checkInstagram
     },
-    // contactFor: {
-    //     type: Schema.Types.ObjectId,
-    //     validate: {
-    //         validator: async contactFor => await Contact.where({ contactFor }).countDocuments() === 0,
-    //         message: ({ value }) => `A contact for that ID already exist.`
-    //     }
-    // }
+    contactFor: {
+        type: Schema.Types.ObjectId,
+        validate: {
+            validator: async contactFor => await Contact.where({ contactFor }).countDocuments() === 0,
+            message: ({ value }) => `A contact for that ID already exist.`
+        }
+    }
 }, { timestamps: Date });
 
 const Contact = mongoose.model('Contact', contactSchema);
 
-module.exports = Contact
+module.exports = Contact;

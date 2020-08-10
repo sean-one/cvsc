@@ -31,7 +31,12 @@ const UserType = new GraphQLObjectType({
         updatedAt: { type: GraphQLDate },
         username: { type: new GraphQLNonNull(GraphQLString) },
         password: { type: new GraphQLNonNull(GraphQLString) },
-        contact: { type: ContactType },
+        contact: { 
+            type: ContactType,
+            resolve(parent, args) {
+                return Contact.findOne({ contactFor: parent._id });
+            }
+        },
         brandsFollowed: {
             type: new GraphQLList(BusinessType),
             resolve(parent, args) {
@@ -131,7 +136,8 @@ const ContactType = new GraphQLObjectType({
         phone: { type: GraphQLString },
         email: { type: GraphQLString },
         url: { type: GraphQLString },
-        instagram: { type: GraphQLString }
+        instagram: { type: GraphQLString },
+        contactFor: { type: GraphQLID }
     })
 });
 
@@ -267,45 +273,39 @@ const Mutation = new GraphQLObjectType({
                 password: { type: GraphQLString },
                 contact: { type: InputContactType }
             },
-            resolve(parent, args){
+            async resolve(parent, args){
                 const password = bcrypt.hashSync(args.password, 10);
                 let newUser = new User({
                     username: args.username,
                     searchBy: args.username.toLowerCase(),
                     password: password,
-                    contact: args.contact
                 });
-                return newUser.save()
+                if(args.contact){
+                    const createdUser = await newUser.save()
+                    const newContact = new Contact({
+                        phone: args.contact.phone,
+                        email: args.contact.email,
+                        url: args.contact.url,
+                        instagram: args.contact.instagram,
+                        refId: createdUser._id
+                    })
+                    newContact.save()
+                    return createdUser
+                }
+                return await newUser.save()
             }
         },
-        updateUser: {
+        updateUserPassword: {
             type: UserType,
             args: {
                 id: { type: GraphQLID },
-                newPassword: { type: GraphQLString },
-                contact: { type: InputContactType }
+                newPassword: { type: GraphQLString }
             },
-            async resolve(parent, args) {
-                if(args.newPassword){
-                    const password = bcrypt.hashSync(args.newPassword, 10);
-                }
-                // return await User.findByIdAndUpdate(args.id, { password: password }, { new: true });
-
-                // console.log('no password');
-                return
+            async resolve(parent, args){
+                const password = bcrypt.hashSync(args.newPassword, 10);
+                return await User.findByIdAndUpdate(args.id, { password: password }, { new: true } );
             }
         },
-        // updateUserPassword: {
-        //     type: UserType,
-        //     args: {
-        //         id: { type: GraphQLID },
-        //         newPassword: { type: GraphQLString }
-        //     },
-        //     async resolve(parent, args){
-        //         const password = bcrypt.hashSync(args.newPassword, 10);
-        //         return await User.findByIdAndUpdate(args.id, { password: password }, { new: true } );
-        //     }
-        // },
         deleteUserByUsername: {
             type: UserType,
             args: {
@@ -391,7 +391,6 @@ const Mutation = new GraphQLObjectType({
                     about: args.about
                 }
                 if (!args.businessAddress) {
-                    console.log('no address included')
                     return await Business.findByIdAndUpdate(args.id, updateObject, { omitUndefined: true, new: true });
                 }
                 const geoCode = await googleMapsClient.geocode({ address: args.businessAddress }).asPromise();
@@ -402,7 +401,6 @@ const Mutation = new GraphQLObjectType({
                     city: geoCode.json.results[0].address_components[2].long_name,
                     place_id: geoCode.json.results[0].place_id
                 }
-                console.log('created with location object');
                 return await Business.findByIdAndUpdate(args.id, updateObject, { omitUndefined: true, new: true });
             }
         },
@@ -433,17 +431,14 @@ const Mutation = new GraphQLObjectType({
             type: ContactType,
             args: {
                 id: { type: GraphQLID },
-                phone: { type: GraphQLString },
-                email: { type: GraphQLString },
-                url: { type: GraphQLString },
-                instagram: { type: GraphQLString },
+                contact: { type: InputContactType },
             },
             resolve(parent, args){
                 const newContact = new Contact({
-                    phone: args.phone,
-                    email: args.email,
-                    url: args.url,
-                    instagram: args.instagram,
+                    phone: args.contact.phone,
+                    email: args.contact.email,
+                    url: args.contact.url,
+                    instagram: args.contact.instagram,
                     contactFor: args.id
                 });
                 return newContact.save();
@@ -453,42 +448,28 @@ const Mutation = new GraphQLObjectType({
             type: ContactType,
             args: {
                 id: { type: GraphQLID },
-                phone: { type: GraphQLString },
-                email: { type: GraphQLString },
-                url: { type: GraphQLString },
-                instagram: { type: GraphQLString },
+                contact: { type: InputContactType },
             },
             async resolve(parent, args){
                 return await Contact.findOneAndUpdate(
                     { contactFor: args.id },
                     { $set: {
-                        "email": args.email,
-                        "phone": args.phone,
-                        "url": args.url,
-                        "instagram": args.instagram
+                        "email": args.contact.email,
+                        "phone": args.contact.phone,
+                        "url": args.contact.url,
+                        "instagram": args.contact.instagram
                     }},
                     { omitUndefined: true, new: true }
                     )
             }
         },
-        removeUserContact: {
+        removeContact: {
             type: ContactType,
             args: {
-                userId: { type: GraphQLID }
+                refId: { type: GraphQLID }
             },
             async resolve(parent, args){
-                await User.findByIdAndUpdate(args.userId, { contact: null }, { new: true });
-                return await Contact.findOneAndDelete({ contactFor: args.userId });
-            }
-        },
-        removeBusinessContact: {
-            type: ContactType,
-            args: {
-                businessId: { type: GraphQLID }
-            },
-            async resolve(parent, args){
-                await Business.findByIdAndUpdate(args.businessId, { contact: null }, { new: true });
-                return await Contact.findOneAndDelete({ contactFor: args.businessId });
+                return await Contact.findOneAndDelete({ contactFor: args.refId });
             }
         },
         // event CRUD operations
