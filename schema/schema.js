@@ -7,6 +7,7 @@ const Contact = require('../data/models/contact');
 const Business = require('../data/models/business');
 const Event = require('../data/models/event');
 const googleMapsClient = require('../utils/geocoder');
+const { update } = require('../data/models/user');
 //#region <MODEL IMPORTS>
 // const ImageStorage = require('../data/models/imagestorage');
 //#endregion
@@ -29,8 +30,9 @@ const UserType = new GraphQLObjectType({
         _id: { type: GraphQLID },
         createdAt: { type: GraphQLDate },
         updatedAt: { type: GraphQLDate },
-        username: { type: new GraphQLNonNull(GraphQLString) },
-        password: { type: new GraphQLNonNull(GraphQLString) },
+        // searchBy: { type: GraphQLString },
+        username: { type: GraphQLString },
+        password: { type: GraphQLString },
         contact: { 
             type: ContactType,
             resolve(parent, args) {
@@ -141,7 +143,35 @@ const ContactType = new GraphQLObjectType({
     })
 });
 
-const InputContactType = new GraphQLInputObjectType({
+const UserInputType = new GraphQLInputObjectType({
+    name: 'UserInput',
+    fields: () => ({
+        username: { type: new GraphQLNonNull(GraphQLString) },
+        password: { type: new GraphQLNonNull(GraphQLString) }
+    })
+});
+
+const NewBusinessInputType = new GraphQLInputObjectType({
+    name: 'NewBusinessInput',
+    fields: () => ({
+        businessname: { type: new GraphQLNonNull(GraphQLString) },
+        about: { type: new GraphQLNonNull(GraphQLString) },
+        businessType: { type: new GraphQLNonNull(GraphQLString) },
+        address: { type: new GraphQLNonNull(GraphQLString) }
+    })
+});
+
+const BusinessInputType = new GraphQLInputObjectType({
+    name: 'BusinessInput',
+    fields: () => ({
+        businessname: { type: GraphQLString },
+        about: { type: GraphQLString },
+        businessType: { type: GraphQLString },
+        address: { type: GraphQLString }
+    })
+});
+
+const ContactInputType = new GraphQLInputObjectType({
     name: 'ContactInput',
     fields: () => ({
         phone: { type: GraphQLString },
@@ -168,17 +198,51 @@ const RootQuery = new GraphQLObjectType({
         userByUsername: {
             type: UserType,
             args: {
-                searchBy: { type: GraphQLString }
+                username: { type: GraphQLString }
             },
-            resolve(parent, args) {
-                const searchBy = args.searchBy.toLowerCase();
-                return User.findOne({ searchBy })
+            async resolve(parent, args) {
+                return User.findOne({ searchBy: args.username.toLowerCase() })
+                    .then(user => {
+                        if(!user) {
+                            throw new Error('Username not found');
+                        }
+                        return { ...user._doc, password: null };
+                    })
+                    .catch(err => {
+                        throw err;
+                    })
+            }
+        },
+        userById: {
+            type: UserType,
+            args: {
+                id: { type: GraphQLID }
+            },
+            async resolve(parent, args){
+                return User.findById({ _id: args.id })
+                    .then(user => {
+                        if(!user){
+                            throw new Error('No user with that ID found')
+                        }
+                        return { ...user._doc, password: null }
+                    })
+                    .catch(err => {
+                        throw err;
+                    })
             }
         },
         users: {
             type: new GraphQLList(UserType),
-            resolve(parent, args) {
-                return User.find({});
+            async resolve(parent, args) {
+                return User.find({})
+                    .then(users => {
+                        return users.map(user => {
+                            return { ...user._doc, password: null };
+                        })
+                    })
+                    .catch(err => {
+                        throw err;
+                    });
             }
         },
         // business queries
@@ -269,30 +333,37 @@ const Mutation = new GraphQLObjectType({
         createUser: {
             type: UserType,
             args: {
-                username: { type: GraphQLString },
-                password: { type: GraphQLString },
-                contact: { type: InputContactType }
+                userinput: { type: UserInputType },
+                contact: { type: ContactInputType }
             },
             async resolve(parent, args){
-                const password = bcrypt.hashSync(args.password, 10);
-                let newUser = new User({
-                    username: args.username,
-                    searchBy: args.username.toLowerCase(),
-                    password: password,
-                });
-                if(args.contact){
-                    const createdUser = await newUser.save()
-                    const newContact = new Contact({
-                        phone: args.contact.phone,
-                        email: args.contact.email,
-                        url: args.contact.url,
-                        instagram: args.contact.instagram,
-                        refId: createdUser._id
+                return User.findOne({ searchBy: args.userinput.username.toLowerCase()})
+                    // this will return either a user that exist or undefined meaning the user was not found
+                    .then(user => {
+                        // check for undefined
+                        if(user) {
+                            throw new Error('User exists already')
+                        }
+                        // if the user returns undefined then there is no duplicate
+                        return bcrypt.hashSync(args.userinput.password, 10);
                     })
-                    newContact.save()
-                    return createdUser
-                }
-                return await newUser.save()
+                    // take the returned hash password and create new user with it
+                    .then(hashedPassword => {
+                        let newUser = new User({
+                            username: args.userinput.username,
+                            searchBy: args.userinput.username.toLowerCase(),
+                            password: hashedPassword,
+                        });
+                        return newUser.save()
+                    })
+                    .then(result => {
+                        return { ...result._doc, password: null }
+                    }
+
+                    )
+                    .catch(err => {
+                        throw err;
+                    });
             }
         },
         updateUserPassword: {
@@ -302,20 +373,22 @@ const Mutation = new GraphQLObjectType({
                 newPassword: { type: GraphQLString }
             },
             async resolve(parent, args){
-                const password = bcrypt.hashSync(args.newPassword, 10);
-                return await User.findByIdAndUpdate(args.id, { password: password }, { new: true } );
+                return User.findOne({ _id: args.id })
+                    .then(user => {
+                        if(!user){
+                            throw new Error('Unknown User')
+                        }
+                        const hashedPassword = bcrypt.hashSync(args.newPassword, 10);
+                        user.password = hashedPassword;
+                        return user.save()
+                    })
+                    .then(result => {
+                        return { ...result._doc, password: "updated"};
+                    })
+                    .catch(err => {
+                        throw err;
+                    })
             }
-        },
-        deleteUserByUsername: {
-            type: UserType,
-            args: {
-                username: { type: GraphQLString },
-            },
-            async resolve(parent, args){
-                const searchBy = args.username.toLowerCase();
-                return await User.findOneAndDelete({ searchBy })
-            }
-
         },
         deleteUserById: {
             type: UserType,
@@ -323,48 +396,89 @@ const Mutation = new GraphQLObjectType({
                 id: { type: GraphQLID }
             },
             async resolve(parent, args){
-                return await User.findByIdAndDelete(args.id)
+                return User.findByIdAndDelete(args.id)
+                    .then(user => {
+                        if(!user) {
+                            throw new Error('User not found')
+                        }
+                        return { ...user._doc, password: null }
+                    })
+                    .catch(err => {
+                        throw err;
+                    })
             }
         },
         // add & remove business ids from user follow list
         follow: {
-            type: BusinessType,
+            type: UserType,
             args: {
                 userId: { type: GraphQLID },
                 businessId: { type: GraphQLID },
             },
             async resolve(parent, args){
-                await User.findByIdAndUpdate(args.userId, { $addToSet: { following: args.businessId } }, { new: true });
-                return Business.findById(args.businessId);
+                return Business.findById(args.businessId)
+                    .then(business => {
+                        if(!business){
+                            throw new Error('incorrect business ID')
+                        }
+                        return User.findById({ _id: args.userId })
+                    })
+                    .then(user => {
+                        if(!user){
+                            throw new Error('incorrect user ID')
+                        }
+                        user.following.addToSet(args.businessId)
+                        return user.save()
+                    })
+                    .then(result => {
+                        return { ...result._doc, password: null }
+                    })
+                    .catch(err => {
+                        throw err;
+                    })
             }
         },
         unfollow: {
-            type: BusinessType,
+            type: UserType,
             args: {
                 userId: {type: GraphQLID },
                 businessId: {type: GraphQLID }
             },
             async resolve(parent, args){
-                await User.findByIdAndUpdate(args.userId, { $pull: { following: args.businessId} }, { new: true} );
-                return Business.findById(args.businessId);
+                return Business.findById(args.businessId)
+                    .then(business => {
+                        if(!business) {
+                            throw new Error('incorrect business ID')
+                        }
+                        return User.findById({ _id: args.userId })
+                    })
+                    .then(user => {
+                        if(!user) {
+                            throw new Error('incorrect user ID')
+                        }
+                        user.following.pull(args.businessId)
+                        return user.save()
+                    })
+                    .then(result => {
+                        return { ...result._doc, password: null }
+                    })
+                    .catch(err => {
+                        throw err;
+                    })
             }
         },
         // business CRUD operations
         createBusiness: {
             type: BusinessType,
             args: {
-                businessname: { type: GraphQLString },
-                about: { type: GraphQLString },
-                businessType: { type: GraphQLString },
-                businessAddress: { type: GraphQLString }
+                newBusinessInput: { type: NewBusinessInputType }
             },
             async resolve(parent, args){
-                const geoCode = await googleMapsClient.geocode({ address: args.businessAddress }).asPromise();
-                console.log(geoCode.json.results[0].geometry.bounds);
+                const geoCode = await googleMapsClient.geocode({ address: args.newBusinessInput.address }).asPromise();
                 let newBusiness = new Business({
-                    businessname: args.businessname,
-                    about: args.about,
-                    businessType: args.businessType,
+                    businessname: args.newBusinessInput.businessname,
+                    about: args.newBusinessInput.about,
+                    businessType: args.newBusinessInput.businessType,
                     address: geoCode.json.results[0].formatted_address,
                     location: {
                         type: 'Point',
@@ -386,22 +500,21 @@ const Mutation = new GraphQLObjectType({
                 businessAddress: { type: GraphQLString }
             },
             async resolve(parent, args){
-                const updateObject = {
-                    businessname: args.businessname,
-                    about: args.about
+                let updateBusinessObject = {};
+                if(args.businessAddress){
+                    const geoCode = await googleMapsClient.geocode({ address: args.businessAddress }).asPromise();
+                    updateBusinessObject.address = geoCode.json.results[0].formatted_address;
+                    updateBusinessObject.location = {
+                        type: 'Point',
+                        coordinates: [geoCode.json.results[0].geometry.location.lng, geoCode.json.results[0].geometry.location.lat],
+                        city: geoCode.json.results[0].address_components[2].long_name,
+                        place_id: geoCode.json.results[0].place_id
+                    }
+                    console.log(updateBusinessObject);
                 }
-                if (!args.businessAddress) {
-                    return await Business.findByIdAndUpdate(args.id, updateObject, { omitUndefined: true, new: true });
-                }
-                const geoCode = await googleMapsClient.geocode({ address: args.businessAddress }).asPromise();
-                updateObject.address = geoCode.json.results[0].formatted_address;
-                updateObject.location = {
-                    type: 'Point',
-                    coordinates: [geoCode.json.results[0].geometry.location.lng, geoCode.json.results[0].geometry.location.lat],
-                    city: geoCode.json.results[0].address_components[2].long_name,
-                    place_id: geoCode.json.results[0].place_id
-                }
-                return await Business.findByIdAndUpdate(args.id, updateObject, { omitUndefined: true, new: true });
+                updateBusinessObject.businessname = args.businessname,
+                updateBusinessObject.about = args.about
+                return await Business.findByIdAndUpdate(args.id, updateBusinessObject, { omitUndefined: true, new: true });
             }
         },
         removeBusiness: {
@@ -431,7 +544,7 @@ const Mutation = new GraphQLObjectType({
             type: ContactType,
             args: {
                 id: { type: GraphQLID },
-                contact: { type: InputContactType },
+                contact: { type: ContactInputType },
             },
             resolve(parent, args){
                 const newContact = new Contact({
@@ -448,7 +561,7 @@ const Mutation = new GraphQLObjectType({
             type: ContactType,
             args: {
                 id: { type: GraphQLID },
-                contact: { type: InputContactType },
+                contact: { type: ContactInputType },
             },
             async resolve(parent, args){
                 return await Contact.findOneAndUpdate(

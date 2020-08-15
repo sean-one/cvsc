@@ -4,10 +4,6 @@ const Schema = mongoose.Schema;
 const userSchema = new Schema({
     username: {
         type: String,
-        validate: {
-            validator: async username => await User.where({ searchBy: username.toLowerCase() }).countDocuments() === 0,
-            message: ({ value }) => `Username ${value} has already been taken.`
-        },
         required: [ true, 'username is required' ]
     },
     searchBy: {
@@ -19,6 +15,7 @@ const userSchema = new Schema({
     },
     following: [{
         type: Schema.Types.ObjectId,
+        ref: 'Business'
     }]
 }, { timestamps: Date });
 
