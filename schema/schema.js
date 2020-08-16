@@ -8,9 +8,6 @@ const Business = require('../data/models/business');
 const Event = require('../data/models/event');
 const googleMapsClient = require('../utils/geocoder');
 const { update } = require('../data/models/user');
-//#region <MODEL IMPORTS>
-// const ImageStorage = require('../data/models/imagestorage');
-//#endregion
 
 const {
     GraphQLObjectType,
