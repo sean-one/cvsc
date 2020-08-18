@@ -7,7 +7,6 @@ const Contact = require('../data/models/contact');
 const Business = require('../data/models/business');
 const Event = require('../data/models/event');
 const googleMapsClient = require('../utils/geocoder');
-const { update } = require('../data/models/user');
 
 const {
     GraphQLObjectType,
