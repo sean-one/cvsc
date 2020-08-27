@@ -4,6 +4,8 @@ const UserType = `
         username: String
         password: String
         contact: Contact
+        brandsFollowed: [Business]
+        dispensariesFollowed: [Business]
     }
 
     type Query {
@@ -16,6 +18,8 @@ const UserType = `
         createUser(userinput: UserInput!): User!
         updateUser(updateuserinput: UpdateUserInput!): User!
         deleteUserById(id: ID!): User!
+        follow(userId: ID, businessId: ID): User
+        unfollow(userId: ID, businessId: ID): User
     }
 
     input UserInput {

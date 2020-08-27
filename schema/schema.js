@@ -326,42 +326,6 @@ const Mutation = new GraphQLObjectType({
     name: 'Mutation',
     fields: {
         // user CRUD operations
-        createUser: {
-            type: UserType,
-            args: {
-                userinput: { type: UserInputType },
-                contact: { type: ContactInputType }
-            },
-            async resolve(parent, args){
-                return User.findOne({ searchBy: args.userinput.username.toLowerCase()})
-                    // this will return either a user that exist or undefined meaning the user was not found
-                    .then(user => {
-                        // check for undefined
-                        if(user) {
-                            throw new Error('User exists already')
-                        }
-                        // if the user returns undefined then there is no duplicate
-                        return bcrypt.hashSync(args.userinput.password, 10);
-                    })
-                    // take the returned hash password and create new user with it
-                    .then(hashedPassword => {
-                        let newUser = new User({
-                            username: args.userinput.username,
-                            searchBy: args.userinput.username.toLowerCase(),
-                            password: hashedPassword,
-                        });
-                        return newUser.save()
-                    })
-                    .then(result => {
-                        return { ...result._doc, password: null }
-                    }
-
-                    )
-                    .catch(err => {
-                        throw err;
-                    });
-            }
-        },
         updateUserPassword: {
             type: UserType,
             args: {
@@ -398,65 +362,6 @@ const Mutation = new GraphQLObjectType({
                             throw new Error('User not found')
                         }
                         return { ...user._doc, password: null }
-                    })
-                    .catch(err => {
-                        throw err;
-                    })
-            }
-        },
-        // add & remove business ids from user follow list
-        follow: {
-            type: UserType,
-            args: {
-                userId: { type: GraphQLID },
-                businessId: { type: GraphQLID },
-            },
-            async resolve(parent, args){
-                return Business.findById(args.businessId)
-                    .then(business => {
-                        if(!business){
-                            throw new Error('incorrect business ID')
-                        }
-                        return User.findById({ _id: args.userId })
-                    })
-                    .then(user => {
-                        if(!user){
-                            throw new Error('incorrect user ID')
-                        }
-                        user.following.addToSet(args.businessId)
-                        return user.save()
-                    })
-                    .then(result => {
-                        return { ...result._doc, password: null }
-                    })
-                    .catch(err => {
-                        throw err;
-                    })
-            }
-        },
-        unfollow: {
-            type: UserType,
-            args: {
-                userId: {type: GraphQLID },
-                businessId: {type: GraphQLID }
-            },
-            async resolve(parent, args){
-                return Business.findById(args.businessId)
-                    .then(business => {
-                        if(!business) {
-                            throw new Error('incorrect business ID')
-                        }
-                        return User.findById({ _id: args.userId })
-                    })
-                    .then(user => {
-                        if(!user) {
-                            throw new Error('incorrect user ID')
-                        }
-                        user.following.pull(args.businessId)
-                        return user.save()
-                    })
-                    .then(result => {
-                        return { ...result._doc, password: null }
                     })
                     .catch(err => {
                         throw err;
