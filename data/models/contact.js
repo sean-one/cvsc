@@ -25,13 +25,6 @@ const contactSchema = new Schema({
     instagram: {
         type: String,
         // validate: checkInstagram
-    },
-    contactFor: {
-        type: Schema.Types.ObjectId,
-        validate: {
-            validator: async contactFor => await Contact.where({ contactFor }).countDocuments() === 0,
-            message: ({ value }) => `A contact for that ID already exist.`
-        }
     }
 }, { timestamps: Date });
 

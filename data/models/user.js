@@ -13,6 +13,10 @@ const userSchema = new Schema({
         type: String,
         required: [ true, 'password is requird' ]
     },
+    contactId: {
+        type: Schema.Types.ObjectId,
+        ref: 'Contact'
+    },
     following: [{
         type: Schema.Types.ObjectId,
         ref: 'Business'

@@ -14,6 +14,10 @@ const businessSchema = new Schema({
         required: true
     },
     address: String,
+    contactId: {
+        type: Schema.Types.ObjectId,
+        ref: 'Contact'
+    },
     location: Location.schema
 }, { timestamps: Date });
 
