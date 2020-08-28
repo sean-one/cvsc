@@ -1,3 +1,6 @@
+const googleMapsClient = require('../../../utils/geocoder');
+
+// model imports
 const Business = require('../../../data/models/business');
 const Contact = require('../../../data/models/contact');
 
@@ -35,11 +38,19 @@ module.exports = {
     },
     Mutation: {
         createBusiness: async (parent, args) => {
+            const geoCode = await googleMapsClient.geocode({ address: args.businessinput.address }).asPromise();
             let newBusiness = new Business({
                 businessname: args.businessinput.businessname,
                 about: args.businessinput.about,
                 businessType: args.businessinput.businessType,
                 address: args.businessinput.address,
+                location: {
+                    type: 'Point',
+                    // note that longitude comes first in a GeoJSON coordinate array, no latitude
+                    coordinates: [geoCode.json.results[0].geometry.location.lng, geoCode.json.results[0].geometry.location.lat],
+                    city: geoCode.json.results[0].address_components[2].long_name,
+                    place_id: geoCode.json.results[0].place_id
+                }
             })
             return newBusiness.save()
                 .then(business => {

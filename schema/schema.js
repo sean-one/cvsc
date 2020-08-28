@@ -1,6 +1,5 @@
 const graphql = require('graphql');
 const { GraphQLDate, GraphQLDateTime } = require('graphql-iso-date');
-const bcrypt = require('bcrypt');
 
 const User = require('../data/models/user');
 const Contact = require('../data/models/contact');
@@ -19,36 +18,6 @@ const {
     GraphQLID,
     GraphQLNonNull
 } = graphql;
-
-const UserType = new GraphQLObjectType({
-    name: 'Users',
-    fields: () => ({
-        _id: { type: GraphQLID },
-        createdAt: { type: GraphQLDate },
-        updatedAt: { type: GraphQLDate },
-        // searchBy: { type: GraphQLString },
-        username: { type: GraphQLString },
-        password: { type: GraphQLString },
-        contact: { 
-            type: ContactType,
-            resolve(parent, args) {
-                return Contact.findOne({ contactFor: parent._id });
-            }
-        },
-        brandsFollowed: {
-            type: new GraphQLList(BusinessType),
-            resolve(parent, args) {
-                return Business.where('_id').in(parent.following).where({ businessType: 'brand' })
-            }
-        },
-        dispensariesFollowed: {
-            type: new GraphQLList(BusinessType),
-            resolve(parent, args) {
-                return Business.where('_id').in(parent.following).where({ businessType: 'dispensary' })
-            }
-        }
-    })
-});
 
 const BusinessType = new GraphQLObjectType({
     name: 'Businesses',
@@ -125,28 +94,6 @@ const EventType = new GraphQLObjectType({
     })
 });
 
-const ContactType = new GraphQLObjectType({
-    name: 'Contacts',
-    fields: () => ({
-        _id: { type: GraphQLID },
-        createdAt: { type: GraphQLDate },
-        updatedAt: { type: GraphQLDate },
-        phone: { type: GraphQLString },
-        email: { type: GraphQLString },
-        url: { type: GraphQLString },
-        instagram: { type: GraphQLString },
-        contactFor: { type: GraphQLID }
-    })
-});
-
-const UserInputType = new GraphQLInputObjectType({
-    name: 'UserInput',
-    fields: () => ({
-        username: { type: new GraphQLNonNull(GraphQLString) },
-        password: { type: new GraphQLNonNull(GraphQLString) }
-    })
-});
-
 const NewBusinessInputType = new GraphQLInputObjectType({
     name: 'NewBusinessInput',
     fields: () => ({
@@ -157,118 +104,9 @@ const NewBusinessInputType = new GraphQLInputObjectType({
     })
 });
 
-const BusinessInputType = new GraphQLInputObjectType({
-    name: 'BusinessInput',
-    fields: () => ({
-        businessname: { type: GraphQLString },
-        about: { type: GraphQLString },
-        businessType: { type: GraphQLString },
-        address: { type: GraphQLString }
-    })
-});
-
-const ContactInputType = new GraphQLInputObjectType({
-    name: 'ContactInput',
-    fields: () => ({
-        phone: { type: GraphQLString },
-        email: { type: GraphQLString },
-        url: { type: GraphQLString },
-        instagram: { type: GraphQLString },
-    })
-});
-
-const LocationType = new GraphQLObjectType({
-    name: 'Locations',
-    fields: () => ({
-        _id: { type: GraphQLID },
-        coordinates: { type: GraphQLList(GraphQLFloat) },
-        city: { type: GraphQLString },
-        place_id: { type: GraphQLString }
-    })
-});
-
 const RootQuery = new GraphQLObjectType({
     name: 'RootQueryType',
     fields: {
-        // user queries
-        userByUsername: {
-            type: UserType,
-            args: {
-                username: { type: GraphQLString }
-            },
-            async resolve(parent, args) {
-                return User.findOne({ searchBy: args.username.toLowerCase() })
-                    .then(user => {
-                        if(!user) {
-                            throw new Error('Username not found');
-                        }
-                        return { ...user._doc, password: null };
-                    })
-                    .catch(err => {
-                        throw err;
-                    })
-            }
-        },
-        userById: {
-            type: UserType,
-            args: {
-                id: { type: GraphQLID }
-            },
-            async resolve(parent, args){
-                return User.findById({ _id: args.id })
-                    .then(user => {
-                        if(!user){
-                            throw new Error('No user with that ID found')
-                        }
-                        return { ...user._doc, password: null }
-                    })
-                    .catch(err => {
-                        throw err;
-                    })
-            }
-        },
-        users: {
-            type: new GraphQLList(UserType),
-            async resolve(parent, args) {
-                return User.find({})
-                    .then(users => {
-                        return users.map(user => {
-                            return { ...user._doc, password: null };
-                        })
-                    })
-                    .catch(err => {
-                        throw err;
-                    });
-            }
-        },
-        // business queries
-        businesses: {
-            type: new GraphQLList(BusinessType),
-            resolve(parent, args) {
-                return Business.find({});
-            }
-        },
-        businessById: {
-            type: BusinessType,
-            args: {
-                id: { type: GraphQLID }
-            },
-            resolve(parent, args){
-                return Business.findById(args.id);
-            }
-        },
-        brands: {
-            type: new GraphQLList(BusinessType),
-            resolve(parent, args) {
-                return Business.find({ businessType: 'brand'})
-            }
-        },
-        dispensaries: {
-            type: new GraphQLList(BusinessType),
-            resolve(parent, args) {
-                return Business.find({ businessType: 'dispensary'})
-            }
-        },
         // event queries
         // NEED - eventByCity
         events: {
@@ -325,49 +163,6 @@ const RootQuery = new GraphQLObjectType({
 const Mutation = new GraphQLObjectType({
     name: 'Mutation',
     fields: {
-        // user CRUD operations
-        updateUserPassword: {
-            type: UserType,
-            args: {
-                id: { type: GraphQLID },
-                newPassword: { type: GraphQLString }
-            },
-            async resolve(parent, args){
-                return User.findOne({ _id: args.id })
-                    .then(user => {
-                        if(!user){
-                            throw new Error('Unknown User')
-                        }
-                        const hashedPassword = bcrypt.hashSync(args.newPassword, 10);
-                        user.password = hashedPassword;
-                        return user.save()
-                    })
-                    .then(result => {
-                        return { ...result._doc, password: "updated"};
-                    })
-                    .catch(err => {
-                        throw err;
-                    })
-            }
-        },
-        deleteUserById: {
-            type: UserType,
-            args: {
-                id: { type: GraphQLID }
-            },
-            async resolve(parent, args){
-                return User.findByIdAndDelete(args.id)
-                    .then(user => {
-                        if(!user) {
-                            throw new Error('User not found')
-                        }
-                        return { ...user._doc, password: null }
-                    })
-                    .catch(err => {
-                        throw err;
-                    })
-            }
-        },
         // business CRUD operations
         createBusiness: {
             type: BusinessType,
@@ -438,52 +233,6 @@ const Mutation = new GraphQLObjectType({
                 }
                 // finally delete the actual business entry
                 return await Business.findByIdAndDelete(args.id);
-            }
-        },
-        // contact CRUD operations
-        createContact: {
-            type: ContactType,
-            args: {
-                id: { type: GraphQLID },
-                contact: { type: ContactInputType },
-            },
-            resolve(parent, args){
-                const newContact = new Contact({
-                    phone: args.contact.phone,
-                    email: args.contact.email,
-                    url: args.contact.url,
-                    instagram: args.contact.instagram,
-                    contactFor: args.id
-                });
-                return newContact.save();
-            }
-        },
-        updateContact: {
-            type: ContactType,
-            args: {
-                id: { type: GraphQLID },
-                contact: { type: ContactInputType },
-            },
-            async resolve(parent, args){
-                return await Contact.findOneAndUpdate(
-                    { contactFor: args.id },
-                    { $set: {
-                        "email": args.contact.email,
-                        "phone": args.contact.phone,
-                        "url": args.contact.url,
-                        "instagram": args.contact.instagram
-                    }},
-                    { omitUndefined: true, new: true }
-                    )
-            }
-        },
-        removeContact: {
-            type: ContactType,
-            args: {
-                refId: { type: GraphQLID }
-            },
-            async resolve(parent, args){
-                return await Contact.findOneAndDelete({ contactFor: args.refId });
             }
         },
         // event CRUD operations

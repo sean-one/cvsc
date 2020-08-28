@@ -5,6 +5,7 @@ const BusinessType = `
         about: String
         businessType: String
         address: String
+        location: Location
         contact: Contact
     }
 
@@ -22,10 +23,10 @@ const BusinessType = `
     }
 
     input BusinessInput {
-        businessname: String
-        about: String
-        businessType: String
-        address: String
+        businessname: String!
+        about: String!
+        businessType: String!
+        address: String!
     }
 
     input UpdateBusinessInput {

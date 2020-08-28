@@ -10,7 +10,7 @@ module.exports = {
             return User.findOne({ searchBy: args.username.toLowerCase() })
                 .then(user => {
                     if(!user) {
-                        throw new Error('Username not found');
+                        throw new Error('user ID not found');
                     }
                     return { ...user._doc, password: null };
                 })
@@ -22,7 +22,7 @@ module.exports = {
             return User.findById({ _id: args.id })
                 .then(user => {
                     if(!user) {
-                        throw new Error('No user with that ID found')
+                        throw new Error('user ID not found')
                     }
                     return { ...user._doc, password: null }
                 })
@@ -92,7 +92,7 @@ module.exports = {
             return User.findByIdAndDelete(args.id)
                 .then(user => {
                     if(!user) {
-                        throw new Error('User not found')
+                        throw new Error('user ID not found')
                     }
                     return { ...user._doc, password: null }
                 })

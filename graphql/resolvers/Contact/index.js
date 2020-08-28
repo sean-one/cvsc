@@ -25,6 +25,7 @@ module.exports = {
                     throw err;
                 })
         },
+        // need a create business contact here
         updateContact: async (parent, args) => {
             return await Contact.findOneAndUpdate(
                 { _id: args.updatecontact.contactId },
