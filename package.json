@@ -11,6 +11,7 @@
   "dependencies": {
     "@google/maps": "^1.1.0",
     "bcrypt": "^5.0.0",
+    "bl": "2.2.1",
     "cors": "^2.8.5",
     "dot-prop": "^4.2.1",
     "dotenv": "^8.2.0",
